@@ -1,0 +1,201 @@
+package com.github.ompc.athing.aliyun.qatest.puppet;
+
+import com.github.ompc.athing.aliyun.qatest.QaBlockedThingOpCb;
+import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
+import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
+import com.github.ompc.athing.aliyun.qatest.puppet.component.ResourceThingCom;
+import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
+import com.github.ompc.athing.component.dmgr.api.domain.info.CpuInfo;
+import com.github.ompc.athing.standard.component.Identifier;
+import com.github.ompc.athing.standard.component.ThingEvent;
+import com.github.ompc.athing.standard.platform.ThingPlatformException;
+import com.github.ompc.athing.standard.platform.ThingTemplate;
+import com.github.ompc.athing.standard.platform.domain.ThingPropertySnapshot;
+import com.github.ompc.athing.standard.platform.message.ThingPostEventMessage;
+import com.github.ompc.athing.standard.platform.message.ThingPostPropertyMessage;
+import com.github.ompc.athing.standard.platform.message.ThingReplyPropertySetMessage;
+import com.github.ompc.athing.standard.platform.message.ThingReplyServiceReturnMessage;
+import com.github.ompc.athing.standard.platform.util.TpEmptyReturn;
+import com.github.ompc.athing.standard.platform.util.TpReturnHelper;
+import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.config.ThingConfig;
+import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
+
+public class PuppetTestCase extends PuppetSupport {
+
+    @Test
+    public void test$thing_post_properties$success() throws ThingException, InterruptedException {
+        final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
+        final Identifier memoryInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "memory_info");
+        final Identifier networksInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "network_info");
+        final Identifier powersInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "power_info");
+        final Identifier storesInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "store_info");
+
+        final String reqId = tPuppet.getThingOp().postThingProperties(
+                new Identifier[]{
+                        cpuInfoId,
+                        memoryInfoId,
+                        networksInfoId,
+                        powersInfoId,
+                        storesInfoId
+                },
+                (id, reply) ->
+                        Assert.assertTrue(reply.isSuccess())
+        );
+
+        final ThingPostPropertyMessage message = waitingForPostMessageByReqId(reqId);
+        Assert.assertNotNull(message.getPropertySnapshot(cpuInfoId));
+        Assert.assertNotNull(message.getPropertySnapshot(memoryInfoId));
+        Assert.assertNotNull(message.getPropertySnapshot(networksInfoId));
+        Assert.assertNotNull(message.getPropertySnapshot(powersInfoId));
+        Assert.assertNotNull(message.getPropertySnapshot(storesInfoId));
+
+    }
+
+    @Test(expected = ThingException.class)
+    public void test$thing_post_properties$failure$property_not_provide() throws ThingException {
+        tPuppet.getThingOp().postThingProperties(
+                new Identifier[]{
+                        Identifier.toIdentifier("not_exist_component", "not_exist_property")
+                },
+                (id, reply) -> Assert.assertTrue(reply.isSuccess())
+        );
+
+
+    }
+
+    @Test
+    public void test$thing_post_event$success() throws ThingException, InterruptedException {
+        final String reqId = tPuppet.getThingOp().postThingEvent(new ThingEvent<>(
+                        Identifier.toIdentifier(EchoThingCom.THING_COM_ID, "echo_event"),
+                        new EchoThingCom.Echo("HELLO!")
+                ),
+                (id, reply) -> Assert.assertTrue(reply.isSuccess())
+        );
+        final ThingPostEventMessage message = waitingForPostMessageByReqId(reqId);
+        final EchoThingCom.Echo echo = message.getData();
+        Assert.assertEquals("HELLO!", echo.getWords());
+    }
+
+    @Test
+    public void test$platform_invoke_sync_service$success() {
+        final EchoThingCom.Echo echo = tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
+                .getThingCom(EchoThingCom.THING_COM_ID, EchoThingCom.class)
+                .echoBySync("HELLO!");
+        Assert.assertEquals("HELLO!", echo.getWords());
+    }
+
+    @Test
+    public void test$platform_invoke_async_service$success() throws Exception {
+        final TpEmptyReturn tpReturn = TpReturnHelper.getTpEmptyReturn(() ->
+                tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
+                        .getThingCom(EchoThingCom.THING_COM_ID, EchoThingCom.class)
+                        .echoByAsync(new EchoThingCom.Echo("HELLO!")));
+        final ThingReplyServiceReturnMessage message = waitingForReplyMessageByReqId(tpReturn.getReqId());
+        final EchoThingCom.Echo echo = message.getData();
+        Assert.assertEquals("HELLO!", echo.getWords());
+    }
+
+    @Test
+    public void test$thing_update_config$success() throws ThingException, InterruptedException {
+        final QaBlockedThingOpCb<ThingConfigApply> opCb = new QaBlockedThingOpCb<>();
+        final String reqId = tPuppet.getThingOp().updateThingConfig(opCb);
+        opCb.waitForCompleted();
+        Assert.assertEquals(reqId, opCb.getId());
+        Assert.assertTrue(opCb.getReply().isSuccess());
+        opCb.getReply().getData().apply();
+        final ThingConfig cfg = waitingForReceiveThingConfig();
+        Assert.assertNotNull(cfg);
+    }
+
+    @Test
+    public void test$thing_upgrade_module$success() throws ThingException, InterruptedException, TimeoutException {
+        final ResourceThingCom resourceThingCom = tPuppet.getThingCom(ResourceThingCom.class);
+        tPuppet.getThingOp().reportModule(resourceThingCom, (id, reply) -> {
+
+        });
+
+        // spin for module upgrade
+        final long start = System.currentTimeMillis();
+        while (!resourceThingCom.getModuleVersion().equals("1.0.1")) {
+
+            //noinspection BusyWait
+            Thread.sleep(500L);
+            if ((System.currentTimeMillis() - start) > 1000L * 60 * 3) {
+                throw new TimeoutException();
+            }
+        }
+
+    }
+
+    @Test
+    public void test$platform_batch_set_properties$success() throws Exception {
+
+        final Identifier brightId = Identifier.toIdentifier(LightThingCom.THING_COM_ID, "bright");
+        final Identifier stateId = Identifier.toIdentifier(LightThingCom.THING_COM_ID, "state");
+        final Map<Identifier, Object> propertyValueMap = new HashMap<>();
+        propertyValueMap.put(brightId, 100);
+        propertyValueMap.put(stateId, LightThingCom.State.ON);
+
+        // reset
+        final LightThingCom lightCom = tPuppet.getThingCom(LightThingCom.THING_COM_ID);
+        lightCom.setBright(0);
+        lightCom.setState(LightThingCom.State.OFF);
+
+        // changed
+        final TpEmptyReturn tpReturn = TpReturnHelper.getTpEmptyReturn(() ->
+                tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
+                        .batchSetProperties(propertyValueMap)
+        );
+
+        // check
+        final ThingReplyPropertySetMessage message = waitingForReplyMessageByReqId(tpReturn.getReqId());
+        Assert.assertTrue(message.getSuccessIdentities().contains(brightId.getIdentity()));
+        Assert.assertTrue(message.getSuccessIdentities().contains(stateId.getIdentity()));
+        Assert.assertEquals(100, lightCom.getBright());
+        Assert.assertEquals(LightThingCom.State.ON, lightCom.getState());
+    }
+
+    @Test
+    public void test$platform_get_property$success() {
+        final CpuInfo cpuInfo = tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
+                .getThingCom(DmgrThingCom.THING_COM_ID, DmgrThingCom.class)
+                .getCpuInfo();
+        Assert.assertNotNull(cpuInfo);
+    }
+
+    @Test
+    public void test$platform_batch_get_properties$success() throws ThingPlatformException {
+
+        final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
+        final Identifier memoryInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "memory_info");
+        final Identifier networksInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "network_info");
+        final Identifier powersInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "power_info");
+        final Identifier storesInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "store_info");
+        final Set<Identifier> identifiers = new HashSet<Identifier>() {{
+            add(cpuInfoId);
+            add(memoryInfoId);
+            add(networksInfoId);
+            add(powersInfoId);
+            add(storesInfoId);
+        }};
+
+        final ThingTemplate template = tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID);
+        final Map<Identifier, ThingPropertySnapshot> propertySnapshotMap = template.batchGetProperties(identifiers);
+        Assert.assertNotNull(propertySnapshotMap.get(cpuInfoId));
+        Assert.assertNotNull(propertySnapshotMap.get(memoryInfoId));
+        Assert.assertNotNull(propertySnapshotMap.get(networksInfoId));
+        Assert.assertNotNull(propertySnapshotMap.get(powersInfoId));
+        Assert.assertNotNull(propertySnapshotMap.get(storesInfoId));
+
+    }
+
+}
