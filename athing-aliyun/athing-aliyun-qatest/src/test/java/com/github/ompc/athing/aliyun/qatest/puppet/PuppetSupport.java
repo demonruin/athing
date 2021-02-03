@@ -43,28 +43,24 @@ public class PuppetSupport {
     // 基础常量
     protected static final Properties properties = getProperties(new Properties());
     protected static final String PRODUCT_ID =
-            properties.getProperty("puppet.product.id");
+            properties.getProperty("athing.product.id");
     protected static final String THING_ID =
-            properties.getProperty("puppet.thing.id");
+            properties.getProperty("athing.thing.id");
     protected static final String THING_SERVER_URL =
-            properties.getProperty("puppet.thing.server-url");
+            properties.getProperty("athing.thing.server-url");
     protected static final ThingAccessKey THING_ACCESS_KEY = new ThingAccessKey(
             PRODUCT_ID,
             THING_ID,
-            properties.getProperty("puppet.thing.secret")
+            properties.getProperty("athing.thing.secret")
     );
-    protected static final ThingPlatformAccessKey PLATFORM_ACS_KEY = new ThingPlatformAccessKey(
-            properties.getProperty("puppet.platform.acs.access-key-id"),
-            properties.getProperty("puppet.platform.acs.access-key-secret")
-    );
-    protected static final ThingPlatformAccessKey PLATFORM_JMS_KEY = new ThingPlatformAccessKey(
-            properties.getProperty("puppet.platform.jms.access-key-id"),
-            properties.getProperty("puppet.platform.jms.access-key-secret")
+    protected static final ThingPlatformAccessKey PLATFORM_ACCESS_KEY = new ThingPlatformAccessKey(
+            properties.getProperty("athing-platform.access.id"),
+            properties.getProperty("athing-platform.access.secret")
     );
     protected static final String PLATFORM_JMS_CONSUMER_GROUP =
-            properties.getProperty("puppet.platform.jms.group");
+            properties.getProperty("athing-platform.jms.group");
     protected static final String PLATFORM_JMS_CONNECTION_URL =
-            properties.getProperty("puppet.platform.jms.connection-url");
+            properties.getProperty("athing-platform.jms.connection-url");
     protected static final QaThingReplyMessageListener qaThingReplyMessageListener = new QaThingReplyMessageListener();
     protected static final QaThingPostMessageListener qaThingPostMessageListener = new QaThingPostMessageListener();
     protected static final QaThingConfigListener qaThingConfigListener = new QaThingConfigListener();
@@ -130,11 +126,11 @@ public class PuppetSupport {
 
     private static ThingPlatform initPuppetThingPlatform() throws ThingPlatformException {
         return new ThingPlatformBuilder()
-                .building(DEFAULT_REGION_ID, PLATFORM_ACS_KEY)
+                .building(DEFAULT_REGION_ID, PLATFORM_ACCESS_KEY)
                 .product(PRODUCT_ID, DmgrThingCom.class, LightThingCom.class, EchoThingCom.class)
                 .consumer(
                         DEFAULT_REGION_ID,
-                        PLATFORM_JMS_KEY,
+                        PLATFORM_ACCESS_KEY,
                         PLATFORM_JMS_CONNECTION_URL,
                         PLATFORM_JMS_CONSUMER_GROUP,
                         new QaThingMessageGroupListener(new ThingMessageListener[]{

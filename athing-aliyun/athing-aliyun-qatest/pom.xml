@@ -19,7 +19,8 @@
                 <version>2.22.1</version>
                 <configuration>
                     <forkMode>once</forkMode>
-                    <argLine>-Dathing-qatest.properties.file=/Users/vlinux/athing-qatest.properties</argLine>
+                    <argLine>-Dathing-qatest.properties.file=${user.home}${file.separator}athing-qatest.properties
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>
