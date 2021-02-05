@@ -2,8 +2,10 @@ package com.github.ompc.athing.standard.platform;
 
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingCom;
+import com.github.ompc.athing.standard.platform.domain.SortOrder;
 import com.github.ompc.athing.standard.platform.domain.ThingPropertySnapshot;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,5 +49,17 @@ public interface ThingTemplate {
      * @throws ThingPlatformException 操作失败
      */
     Map<Identifier, ThingPropertySnapshot> batchGetProperties(Set<Identifier> identifiers) throws ThingPlatformException;
+
+    /**
+     * 迭代查询属性快照
+     *
+     * @param identifier 属性标识
+     * @param batch      批次数量
+     *                   每次迭代器更新时从云端获取数据量，迭代器会一次拿一批数据到本地内存中进行迭代遍历
+     * @param order      排序顺序
+     * @return 属性快照迭代器
+     * @throws ThingPlatformException 操作失败
+     */
+    Iterator<ThingPropertySnapshot> iteratorForPropertySnapshot(Identifier identifier, int batch, SortOrder order) throws ThingPlatformException;
 
 }

@@ -1,5 +1,6 @@
 package com.github.ompc.athing.aliyun.qatest.puppet;
 
+import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.qatest.QaBlockedThingOpCb;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
@@ -10,6 +11,7 @@ import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.ThingTemplate;
+import com.github.ompc.athing.standard.platform.domain.SortOrder;
 import com.github.ompc.athing.standard.platform.domain.ThingPropertySnapshot;
 import com.github.ompc.athing.standard.platform.message.ThingPostEventMessage;
 import com.github.ompc.athing.standard.platform.message.ThingPostPropertyMessage;
@@ -22,14 +24,15 @@ import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 public class PuppetTestCase extends PuppetSupport {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
     public void test$thing_post_properties$success() throws ThingException, InterruptedException {
@@ -196,6 +199,18 @@ public class PuppetTestCase extends PuppetSupport {
         Assert.assertNotNull(propertySnapshotMap.get(powersInfoId));
         Assert.assertNotNull(propertySnapshotMap.get(storesInfoId));
 
+    }
+
+    @Test
+    public void test$platform_iterator_get_property$success() throws ThingPlatformException {
+        final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
+        final ThingTemplate template = tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID);
+        final Iterator<ThingPropertySnapshot> propertySnapshotIt = template.iteratorForPropertySnapshot(cpuInfoId, 10, SortOrder.DESCENDING);
+        while (propertySnapshotIt.hasNext()) {
+            final ThingPropertySnapshot propertySnapshot = propertySnapshotIt.next();
+            logger.info("property:{}", GsonFactory.getGson().toJson(propertySnapshot));
+            Assert.assertNotNull(propertySnapshot);
+        }
     }
 
 }

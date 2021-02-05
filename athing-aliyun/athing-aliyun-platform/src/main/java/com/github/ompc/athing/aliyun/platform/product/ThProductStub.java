@@ -2,7 +2,10 @@ package com.github.ompc.athing.aliyun.platform.product;
 
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.exceptions.ClientException;
-import com.aliyuncs.iot.model.v20180120.*;
+import com.aliyuncs.iot.model.v20180120.InvokeThingServiceRequest;
+import com.aliyuncs.iot.model.v20180120.InvokeThingServiceResponse;
+import com.aliyuncs.iot.model.v20180120.SetDevicePropertyRequest;
+import com.aliyuncs.iot.model.v20180120.SetDevicePropertyResponse;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThParamMeta;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
@@ -11,6 +14,7 @@ import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.platform.AliyunThingPlatformException;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
+import com.github.ompc.athing.standard.platform.domain.SortOrder;
 import com.github.ompc.athing.standard.platform.domain.ThingPropertySnapshot;
 import com.github.ompc.athing.standard.platform.util.TpRuntime;
 import com.google.gson.Gson;
@@ -234,60 +238,15 @@ public class ThProductStub {
         );
     }
 
-    private Collection<ThingPropertySnapshot> getPropertiesSnapshot(String thingId, Identifier identifier, long begin, long end) throws ThingPlatformException {
 
-        final ThPropertyMeta thPropertyMeta = thProductMeta.getThPropertyMeta(identifier);
-        if (null == thPropertyMeta) {
-            throw new IllegalArgumentException(
-                    String.format("property: %s is not provide in %s", identifier, productId)
-            );
-        }
-
-        final QueryDevicePropertyDataRequest request = new QueryDevicePropertyDataRequest();
-        request.setProductKey(productId);
-        request.setDeviceName(thingId);
-        request.setAsc(0);
-        request.setStartTime(begin);
-        request.setEndTime(end);
-        request.setPageSize(1);
-        request.setIdentifier(identifier.getIdentity());
-
-        try {
-            final QueryDevicePropertyDataResponse response = client.getAcsResponse(request);
-
-            // 平台返回调用失败
-            if (!response.getSuccess()) {
-                throw new AliyunThingPlatformException(
-                        String.format("/%s/%s get property response failure, code=%s;message=%s;identifier=%s;",
-                                productId,
-                                thingId,
-                                response.getCode(),
-                                response.getErrorMessage(),
-                                identifier
-                        ));
-            }
-
-            if (response.getData() != null && response.getData().getList() != null) {
-                return response.getData().getList().stream()
-                        .map(info -> new ThingPropertySnapshot(
-                                identifier,
-                                gson.fromJson(info.getValue(), thPropertyMeta.getPropertyType()),
-                                Long.parseLong(info.getTime())
-                        ))
-                        .collect(Collectors.toList());
-            } else {
-                return Collections.emptyList();
-            }
-
-
-        } catch (ClientException cause) {
-            throw new AliyunThingPlatformException(
-                    String.format("/%s/%s get property error, identifier=%s", productId, thingId, identifier),
-                    cause
-            );
-        }
-
-    }
+    /**
+     * 阿里云数据快照存储最大持续时间（毫秒）
+     * <p>
+     * 阿里云存储数据快照是有时间限制的，这个限制默认是30天。
+     * 如果觉得30天不够，其实需要自己接收属性上报的事件，存储到自己的数据库中查询
+     * </p>
+     */
+    private static final long SNAPSHOT_DURATION_MS = 30 * 24 * 3600 * 1000L;
 
     /**
      * 获取属性快照集合
@@ -299,39 +258,66 @@ public class ThProductStub {
      */
     public Map<Identifier, ThingPropertySnapshot> getPropertySnapshotMap(String thingId, Set<Identifier> identifiers) throws ThingPlatformException {
 
-        final Map<Identifier, ThPropertyMeta> thProductMetaMap = new HashMap<>();
-        for (final Identifier identifier : identifiers) {
-            final ThPropertyMeta thPropertyMeta = thProductMeta.getThPropertyMeta(identifier);
-            if (null == thPropertyMeta) {
-                throw new IllegalArgumentException(
-                        String.format("property: %s is not provide in %s", identifier, productId)
+        final long end = System.currentTimeMillis();
+        final long begin = end - SNAPSHOT_DURATION_MS;
+
+        final PropertiesSnapshotIteratorImpl propertiesSnapshotIt
+                = new PropertiesSnapshotIteratorImpl(
+                client, productId, thProductMeta, thingId, identifiers, begin, end, SortOrder.ASCENDING, 1
+        );
+
+        final Map<Identifier, ThingPropertySnapshot> propertySnapshotMap = new HashMap<>();
+        while (propertiesSnapshotIt.rollingHasNext()) {
+            final Map.Entry<Identifier, Collection<ThingPropertySnapshot>> entry = propertiesSnapshotIt.next();
+            final Collection<ThingPropertySnapshot> thingPropertySnapshots = entry.getValue();
+            if (null != thingPropertySnapshots && !thingPropertySnapshots.isEmpty()) {
+                propertySnapshotMap.put(
+                        entry.getKey(),
+                        thingPropertySnapshots.iterator().next()
                 );
             }
-            thProductMetaMap.put(identifier, thPropertyMeta);
         }
-
-        final long end = System.currentTimeMillis();
-        final long begin = end - 30 * 3600 * 1000L;
-
-        final Map<Identifier, ThingPropertySnapshot> snapshotMap = new HashMap<>();
-        for (Map.Entry<Identifier, ThPropertyMeta> entry : thProductMetaMap.entrySet()) {
-            final Identifier identifier = entry.getKey();
-            final Collection<ThingPropertySnapshot> snapshots = getPropertiesSnapshot(thingId, identifier, begin, end);
-            if (!snapshots.isEmpty()) {
-                snapshotMap.put(identifier, snapshots.iterator().next());
-            }
-        }
-        return snapshotMap;
+        return propertySnapshotMap;
     }
 
+    /**
+     * 获取属性最新快照
+     *
+     * @param thingId    设备ID
+     * @param identifier 属性标识
+     * @return 属性最新快照值
+     * @throws ThingPlatformException 获取属性快照失败
+     */
     public ThingPropertySnapshot getPropertySnapshot(String thingId, Identifier identifier) throws ThingPlatformException {
         final long end = System.currentTimeMillis();
-        final long begin = end - 30 * 3600 * 1000L;
+        final long begin = end - SNAPSHOT_DURATION_MS;
 
-        final Collection<ThingPropertySnapshot> snapshots = getPropertiesSnapshot(thingId, identifier, begin, end);
-        return !snapshots.isEmpty()
-                ? snapshots.iterator().next()
+        final Iterator<ThingPropertySnapshot> propertySnapshotIt = new PropertySnapshotIteratorImpl(
+                client, productId, thProductMeta, thingId, identifier, begin, end, SortOrder.ASCENDING, 1
+        );
+
+        return propertySnapshotIt.hasNext()
+                ? propertySnapshotIt.next()
                 : null;
+
+    }
+
+    /**
+     * 迭代查询属性快照
+     *
+     * @param thingId    设备ID
+     * @param identifier 属性标识
+     * @param batch      批次数量
+     * @param order      排序顺序
+     * @return 属性快照迭代器
+     * @throws ThingPlatformException 操作失败
+     */
+    public Iterator<ThingPropertySnapshot> iteratorForPropertySnapshot(String thingId, Identifier identifier, int batch, SortOrder order) throws ThingPlatformException {
+        final long end = System.currentTimeMillis();
+        final long begin = end - SNAPSHOT_DURATION_MS;
+        return new PropertySnapshotIteratorImpl(
+                client, productId, thProductMeta, thingId, identifier, begin, end, order, batch
+        );
     }
 
 }

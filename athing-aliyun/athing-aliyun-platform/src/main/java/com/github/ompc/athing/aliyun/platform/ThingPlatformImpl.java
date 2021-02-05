@@ -9,6 +9,7 @@ import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.platform.ThingPlatform;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.ThingTemplate;
+import com.github.ompc.athing.standard.platform.domain.SortOrder;
 import com.github.ompc.athing.standard.platform.domain.ThingPropertySnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,7 +56,7 @@ class ThingPlatformImpl implements ThingPlatform {
     }
 
     // 检查产品ID是否符合预期
-    private void checkInovkeProductId(String expect, String actual) {
+    private void checkInvokeProductId(String expect, String actual) {
         if (!expect.equals(actual)) {
             throw new IllegalArgumentException(
                     String.format("check invoke failure, expect product: %s, but actual: %s", expect, actual)
@@ -83,7 +85,7 @@ class ThingPlatformImpl implements ThingPlatform {
 
                         // GetProperty
                         invokerCache.put(meta.getGetter(), (_productId, thingId, arguments) -> {
-                            checkInovkeProductId(productId, _productId);
+                            checkInvokeProductId(productId, _productId);
                             checkInvokeArgsCount(arguments, 0);
                             final ThingPropertySnapshot snapshot = stub.getPropertySnapshot(thingId, id);
                             return null != snapshot ? snapshot.getValue() : null;
@@ -92,7 +94,7 @@ class ThingPlatformImpl implements ThingPlatform {
                         // SetProperty
                         if (!meta.isReadonly()) {
                             invokerCache.put(meta.getSetter(), (_productId, thingId, arguments) -> {
-                                checkInovkeProductId(productId, _productId);
+                                checkInvokeProductId(productId, _productId);
                                 checkInvokeArgsCount(arguments, 1);
                                 stub.setPropertyValue(thingId, id, arguments[0]);
                                 return null;
@@ -104,7 +106,7 @@ class ThingPlatformImpl implements ThingPlatform {
                     // 构建服务相关方法缓存
                     thComMeta.getIdentityThServiceMetaMap().forEach((id, meta) ->
                             invokerCache.put(meta.getService(), (_productId, thingId, arguments) -> {
-                                checkInovkeProductId(productId, _productId);
+                                checkInvokeProductId(productId, _productId);
                                 return stub.service(thingId, id, arguments);
                             }));
 
@@ -170,6 +172,11 @@ class ThingPlatformImpl implements ThingPlatform {
             @Override
             public Map<Identifier, ThingPropertySnapshot> batchGetProperties(Set<Identifier> identifiers) throws ThingPlatformException {
                 return thProductStub.getPropertySnapshotMap(thingId, identifiers);
+            }
+
+            @Override
+            public Iterator<ThingPropertySnapshot> iteratorForPropertySnapshot(Identifier identifier, int batch, SortOrder order) throws ThingPlatformException {
+                return thProductStub.iteratorForPropertySnapshot(thingId, identifier, batch, order);
             }
         };
     }
