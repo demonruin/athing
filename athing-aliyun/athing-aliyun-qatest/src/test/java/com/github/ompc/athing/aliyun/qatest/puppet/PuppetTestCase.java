@@ -121,7 +121,7 @@ public class PuppetTestCase extends PuppetSupport {
 
     @Test
     public void test$thing_upgrade_module$success() throws ThingException, InterruptedException, TimeoutException {
-        final ResourceThingCom resourceThingCom = tPuppet.getThingCom(ResourceThingCom.class);
+        final ResourceThingCom resourceThingCom = tPuppet.requireUniqueThingComOfType(ResourceThingCom.class);
         tPuppet.getThingOp().reportModule(resourceThingCom, (id, reply) -> {
 
         });
@@ -149,7 +149,7 @@ public class PuppetTestCase extends PuppetSupport {
         propertyValueMap.put(stateId, LightThingCom.State.ON);
 
         // reset
-        final LightThingCom lightCom = tPuppet.getThingCom(LightThingCom.THING_COM_ID);
+        final LightThingCom lightCom = tPuppet.requireThingCom(LightThingCom.THING_COM_ID, LightThingCom.class);
         lightCom.setBright(0);
         lightCom.setState(LightThingCom.State.OFF);
 

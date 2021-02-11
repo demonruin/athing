@@ -12,6 +12,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -112,68 +113,82 @@ public class ThingImpl implements Thing {
         return kernel.getThingComStubMap().keySet();
     }
 
+    @Override
+    public ThingCom getThingCom(String thingComId) {
+        if (kernel.getThingComStubMap().containsKey(thingComId)) {
+            return kernel.getThingComStubMap().get(thingComId).getThingCom();
+        }
+        return null;
+    }
+
+    @Override
+    public ThingCom requireThingCom(String thingComId) throws ThingException {
+        if (!kernel.getThingComStubMap().containsKey(thingComId)) {
+            throw new ThingException(this, String.format("require component: %s, but not found!",
+                    thingComId
+            ));
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends ThingCom> T getThingCom(String thingComId) {
-        final ThingComStub thingComStub = kernel.getThingComStubMap().get(thingComId);
-        return null != thingComStub
-                ? (T) thingComStub.getThingCom()
+    public <T extends ThingCom> T getThingCom(String thingComId, Class<T> expectType) {
+        final ThingCom thingCom = getThingCom(thingComId);
+        return expectType.isInstance(thingCom)
+                ? (T) thingCom
                 : null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public <T extends ThingCom> T requireThingCom(String thingComId) throws ThingException {
-        final T thingCom = getThingCom(thingComId);
-        if (null == thingCom) {
-            throw new ThingException(this, String.format(
-                    "component: id=%s is required, but not found!",
-                    thingComId)
-            );
+    public <T extends ThingCom> T requireThingCom(String thingComId, Class<T> expectType) throws ThingException {
+        final ThingCom thingCom = requireThingCom(thingComId);
+        if (!expectType.isInstance(thingCom)) {
+            throw new ThingException(this, String.format("require component: %s, type expect=%s, but actual=%s",
+                    thingComId,
+                    expectType.getName(),
+                    thingCom.getClass().getName()
+            ));
         }
-        return thingCom;
-    }
-
-    @Override
-    public <T extends ThingCom> T getThingCom(Class<T> type) throws ThingException {
-        final Set<T> thingComSet = getThingComSet(type);
-
-        // 一个都没找到，返回null
-        if (null == thingComSet || thingComSet.isEmpty()) {
-            return null;
-        }
-
-        // 多于1个，报错
-        if (thingComSet.size() > 1) {
-            throw new ThingException(this, String.format(
-                    "component: type=%s except: 1, but found: %d",
-                    type.getName(),
-                    thingComSet.size())
-            );
-        }
-
-        // 正好1个，直接返回
-        return thingComSet.iterator().next();
-    }
-
-    @Override
-    public <T extends ThingCom> T requireThingCom(Class<T> type) throws ThingException {
-        final T thingCom = getThingCom(type);
-        if (null == thingCom) {
-            throw new ThingException(this, String.format(
-                    "component: type=%s is required, but not found!",
-                    type.getName())
-            );
-        }
-        return thingCom;
+        return (T) thingCom;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends ThingCom> Set<T> getThingComSet(Class<T> type) {
-        return kernel.getThingComSet().stream()
-                .filter(type::isInstance)
-                .map(thingCom -> (T) thingCom)
-                .collect(Collectors.toSet());
+    public <T extends ThingCom> Map<String, T> getThingComMapOfType(Class<T> expectType) {
+        return kernel.getThingComStubMap().values().stream()
+                .filter(stub -> expectType.isInstance(stub.getThingCom()))
+                .collect(Collectors.toMap(
+                        ThingComStub::getThingComId,
+                        stub -> (T) stub.getThingCom()
+                ));
+    }
+
+    @Override
+    public <T extends ThingCom> T getUniqueThingComOfType(Class<T> expectType) throws ThingException {
+        final Map<String, T> founds = getThingComMapOfType(expectType);
+        if (founds.size() > 1) {
+            throw new ThingException(this, String.format("component type=%s is expect unique, but actual=%s, found=%s",
+                    expectType.getName(),
+                    founds.size(),
+                    founds.keySet()
+            ));
+        }
+        return founds.isEmpty()
+                ? null
+                : founds.values().iterator().next();
+    }
+
+    @Override
+    public <T extends ThingCom> T requireUniqueThingComOfType(Class<T> expectType) throws ThingException {
+        final T found = getUniqueThingComOfType(expectType);
+        if (null == found) {
+            throw new ThingException(this, String.format("component type=%s is require, but not found!",
+                    expectType.getName()
+            ));
+        }
+        return found;
     }
 
 
