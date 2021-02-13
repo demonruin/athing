@@ -22,26 +22,26 @@ class MqttClientExt extends MqttClient {
      * 构造MQTT客户端
      *
      * @param thingServerUrl 服务地址
-     * @param thingAccessKey 设备密钥
+     * @param access         设备密钥
      * @throws MqttException 构建MQTT客户端失败
      */
     public MqttClientExt(final String thingServerUrl,
-                         final ThingAccessKey thingAccessKey) throws MqttException {
-        this(thingServerUrl, new Boot(thingAccessKey), new MemoryPersistence());
+                         final ThingAccess access) throws MqttException {
+        this(thingServerUrl, new Boot(access), new MemoryPersistence());
     }
 
     /**
      * 构造MQTT客户端
      *
-     * @param serverUrl      服务地址
-     * @param thingAccessKey 设备密钥
-     * @param persistence    数据持久化方案
+     * @param serverUrl   服务地址
+     * @param access      设备密钥
+     * @param persistence 数据持久化方案
      * @throws MqttException 构建MQTT客户端失败
      */
     public MqttClientExt(final String serverUrl,
-                         final ThingAccessKey thingAccessKey,
+                         final ThingAccess access,
                          final MqttClientPersistence persistence) throws MqttException {
-        this(serverUrl, new Boot(thingAccessKey), persistence);
+        this(serverUrl, new Boot(access), persistence);
     }
 
     private MqttClientExt(final String serverUrl,
@@ -85,15 +85,15 @@ class MqttClientExt extends MqttClient {
 
         final String uniqueId = UUID.randomUUID().toString();
         final long timestamp = System.currentTimeMillis();
-        final ThingAccessKey thingAccessKey;
+        final ThingAccess access;
 
         /**
          * 构建启动信息
          *
-         * @param thingAccessKey 设备密钥
+         * @param access 设备密钥
          */
-        Boot(ThingAccessKey thingAccessKey) {
-            this.thingAccessKey = thingAccessKey;
+        Boot(ThingAccess access) {
+            this.access = access;
         }
 
         /**
@@ -102,7 +102,7 @@ class MqttClientExt extends MqttClient {
          * @return MQTT帐号
          */
         String getUsername() {
-            return String.format("%s&%s", thingAccessKey.getThingId(), thingAccessKey.getProductId());
+            return String.format("%s&%s", access.getThingId(), access.getProductId());
         }
 
         /**
@@ -113,13 +113,13 @@ class MqttClientExt extends MqttClient {
         char[] getPassword() {
             final String content = String.format("clientId%sdeviceName%sproductKey%stimestamp%s",
                     uniqueId,
-                    thingAccessKey.getThingId(),
-                    thingAccessKey.getProductId(),
+                    access.getThingId(),
+                    access.getProductId(),
                     timestamp
             );
             try {
                 final Mac mac = Mac.getInstance("HMACSHA1");
-                mac.init(new SecretKeySpec(thingAccessKey.getSecret().getBytes(UTF_8), mac.getAlgorithm()));
+                mac.init(new SecretKeySpec(access.getSecret().getBytes(UTF_8), mac.getAlgorithm()));
                 return bytesToHexString(mac.doFinal(content.getBytes(UTF_8))).toCharArray();
             } catch (Exception e) {
                 throw new RuntimeException(e);

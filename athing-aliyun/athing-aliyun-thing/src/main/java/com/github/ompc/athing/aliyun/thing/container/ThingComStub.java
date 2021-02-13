@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.thing.kernel;
+package com.github.ompc.athing.aliyun.thing.container;
 
 import com.github.ompc.athing.aliyun.framework.component.meta.ThComMeta;
 import com.github.ompc.athing.standard.component.ThingCom;

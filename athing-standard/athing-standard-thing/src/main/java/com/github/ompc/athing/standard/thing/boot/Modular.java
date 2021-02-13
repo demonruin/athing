@@ -1,5 +1,6 @@
 package com.github.ompc.athing.standard.thing.boot;
 
+import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.ThingException;
 
 import java.io.File;
@@ -10,7 +11,7 @@ import java.io.File;
  * 标记一个设备组件可模块化管理，模块化后的组件可进行OTA升级
  * </p>
  */
-public interface Modular {
+public interface Modular extends ThingCom {
 
     /**
      * 获取模块ID

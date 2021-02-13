@@ -3,7 +3,7 @@ package com.github.ompc.athing.aliyun.thing;
 /**
  * 设备启动选项
  */
-public class ThingConnectOptions {
+public class ThingConnectOption {
 
     /**
      * 设备连接超时(毫秒)
@@ -26,6 +26,11 @@ public class ThingConnectOptions {
     private long upgradeTimeoutMs = 1000 * 60L * 3;
 
     /**
+     * 重连时间间隔(毫秒)
+     */
+    private long reconnectTimeIntervalMs = 500;
+
+    /**
      * 获取连接区域
      */
     private String connectRegion = "cn-shanghai";
@@ -41,6 +46,14 @@ public class ThingConnectOptions {
 
     public void setConnectTimeoutMs(long connectTimeoutMs) {
         this.connectTimeoutMs = connectTimeoutMs;
+    }
+
+    public long getKeepAliveIntervalMs() {
+        return keepAliveIntervalMs;
+    }
+
+    public void setKeepAliveIntervalMs(long keepAliveIntervalMs) {
+        this.keepAliveIntervalMs = keepAliveIntervalMs;
     }
 
     public long getConfigTimeoutMs() {
@@ -59,12 +72,12 @@ public class ThingConnectOptions {
         this.upgradeTimeoutMs = upgradeTimeoutMs;
     }
 
-    public long getKeepAliveIntervalMs() {
-        return keepAliveIntervalMs;
+    public long getReconnectTimeIntervalMs() {
+        return reconnectTimeIntervalMs;
     }
 
-    public void setKeepAliveIntervalMs(long keepAliveIntervalMs) {
-        this.keepAliveIntervalMs = keepAliveIntervalMs;
+    public void setReconnectTimeIntervalMs(long reconnectTimeIntervalMs) {
+        this.reconnectTimeIntervalMs = reconnectTimeIntervalMs;
     }
 
     public String getConnectRegion() {

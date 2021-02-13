@@ -3,7 +3,7 @@ package com.github.ompc.athing.aliyun.thing;
 /**
  * 设备连接密钥
  */
-public class ThingAccessKey {
+public class ThingAccess {
 
     private final String productId;
     private final String thingId;
@@ -16,7 +16,7 @@ public class ThingAccessKey {
      * @param thingId   设备ID
      * @param secret    设备密码
      */
-    public ThingAccessKey(String productId, String thingId, String secret) {
+    public ThingAccess(String productId, String thingId, String secret) {
         this.productId = productId;
         this.thingId = thingId;
         this.secret = secret;

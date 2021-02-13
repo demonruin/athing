@@ -70,7 +70,7 @@ public class ThingConfigPushMqttExecutor implements MqttExecutor {
             // 应用配置
             listener.configThing(
                     thing,
-                    new ThingConfigImpl(PRODUCT, version, thing, thing.getThingConnOpts(), configURL, configCHS)
+                    new ThingConfigImpl(PRODUCT, thing, thing.getThingConnOpt(), version, configURL, configCHS)
             );
 
         } catch (Exception cause) {

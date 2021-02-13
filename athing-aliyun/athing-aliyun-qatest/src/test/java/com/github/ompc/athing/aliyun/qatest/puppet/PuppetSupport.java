@@ -1,6 +1,6 @@
 package com.github.ompc.athing.aliyun.qatest.puppet;
 
-import com.github.ompc.athing.aliyun.platform.ThingPlatformAccessKey;
+import com.github.ompc.athing.aliyun.platform.ThingPlatformAccess;
 import com.github.ompc.athing.aliyun.platform.ThingPlatformBuilder;
 import com.github.ompc.athing.aliyun.qatest.QaThingConfigListener;
 import com.github.ompc.athing.aliyun.qatest.message.QaThingMessageGroupListener;
@@ -8,12 +8,11 @@ import com.github.ompc.athing.aliyun.qatest.message.QaThingPostMessageListener;
 import com.github.ompc.athing.aliyun.qatest.message.QaThingReplyMessageListener;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
-import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.QaThingComBoot;
-import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.ResourceThingComBoot;
-import com.github.ompc.athing.aliyun.thing.ThingAccessKey;
-import com.github.ompc.athing.aliyun.thing.ThingConnectOptions;
+import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.QaThingComImpl;
+import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.ResourceThingComImpl;
+import com.github.ompc.athing.aliyun.thing.ThingAccess;
+import com.github.ompc.athing.aliyun.thing.ThingConnectOption;
 import com.github.ompc.athing.aliyun.thing.ThingConnector;
-import com.github.ompc.athing.aliyun.thing.kernel.ThingBoot;
 import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.platform.ThingPlatform;
@@ -48,12 +47,12 @@ public class PuppetSupport {
             properties.getProperty("athing.thing.id");
     protected static final String THING_SERVER_URL =
             properties.getProperty("athing.thing.server-url");
-    protected static final ThingAccessKey THING_ACCESS_KEY = new ThingAccessKey(
+    protected static final ThingAccess THING_ACCESS = new ThingAccess(
             PRODUCT_ID,
             THING_ID,
             properties.getProperty("athing.thing.secret")
     );
-    protected static final ThingPlatformAccessKey PLATFORM_ACCESS_KEY = new ThingPlatformAccessKey(
+    protected static final ThingPlatformAccess PLATFORM_ACCESS_KEY = new ThingPlatformAccess(
             properties.getProperty("athing-platform.access.id"),
             properties.getProperty("athing-platform.access.secret")
     );
@@ -111,17 +110,17 @@ public class PuppetSupport {
 
     private static Thing initPuppetThing() throws Exception {
         return new ThingConnector()
-                .connecting(THING_SERVER_URL, THING_ACCESS_KEY)
-                .setThingBoot(new ThingBoot()
-                        .booting(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"))
-                        .booting(new QaThingComBoot())
-                        .booting(new ResourceThingComBoot())
-                        .booting((thing, arguments) -> new ThingCom() {
-                        })
-                )
+                .connecting(THING_SERVER_URL, THING_ACCESS)
+                .load(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"), boot -> boot.bootUp(PRODUCT_ID, THING_ID, null))
+                .load((productId, thingId) -> new ThingCom[]{
+                        new QaThingComImpl(),
+                        new ResourceThingComImpl(),
+                        new ThingCom() {
+                        }
+                })
                 .setThingConfigListener(qaThingConfigListener)
                 .setThingOpHook(thing -> logger.info("{} require reboot", thing))
-                .connect(new ThingConnectOptions());
+                .connect(new ThingConnectOption());
     }
 
     private static ThingPlatform initPuppetThingPlatform() throws ThingPlatformException {

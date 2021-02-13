@@ -4,11 +4,10 @@ import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
+import com.github.ompc.athing.aliyun.thing.container.ThingComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.aliyun.thing.executor.ThingOpPingPong;
-import com.github.ompc.athing.aliyun.thing.kernel.ThingComStub;
-import com.github.ompc.athing.aliyun.thing.kernel.ThingKernel;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.thing.ThingException;
@@ -136,11 +135,10 @@ public class ThingPostMqttExecutor implements MqttExecutor {
 
     // 构造报告数据：属性
     private MapObject buildingPostDataForThingComProperties(Identifier[] identifiers) throws ThingException {
-        final ThingKernel kernel = thing.getThingKernel();
         final MapObject parameterMap = new MapObject();
         for (final Identifier identifier : identifiers) {
             // 模块不存在
-            final ThingComStub thingComStub = kernel.getThingComStubMap().get(identifier.getComponentId());
+            final ThingComStub thingComStub = thing.getThingComStubMap().get(identifier.getComponentId());
             if (null == thingComStub) {
                 throw new ThingException(thing, String.format("component: %s not existed, identity=%s;",
                         identifier.getComponentId(),

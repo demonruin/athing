@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateSequenceId;
@@ -68,7 +69,11 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor {
         try {
 
             // 检查模块是否存在
-            final Modular module = thing.getThingKernel().getModule(moduleId);
+            final Modular module = thing.getThingComMapOfType(Modular.class).values().stream()
+                    .filter(modular -> Objects.equals(modular.getModuleId(), moduleId))
+                    .findAny()
+                    .orElse(null);
+
             if (null == module) {
                 throw new ModularUpgradeProcessException(
                         ModularUpgradeProcessException.STEP_UPGRADE_FAILURE,
@@ -234,8 +239,8 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor {
                 logger.info("{}/module/upgrade downloading: {} -> {}", thing, upgradeFileURL, file);
                 HttpUtils.download(
                         new URL(upgradeFileURL),
-                        thing.getThingConnOpts().getConnectTimeoutMs(),
-                        thing.getThingConnOpts().getUpgradeTimeoutMs(),
+                        thing.getThingConnOpt().getConnectTimeoutMs(),
+                        thing.getThingConnOpt().getUpgradeTimeoutMs(),
                         file,
                         this
                 );

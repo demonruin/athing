@@ -1,6 +1,6 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl;
 
-import com.github.ompc.athing.aliyun.thing.ThingConnectOptions;
+import com.github.ompc.athing.aliyun.thing.ThingConnectOption;
 import com.github.ompc.athing.aliyun.thing.util.HttpUtils;
 import com.github.ompc.athing.aliyun.thing.util.StringUtils;
 import com.github.ompc.athing.standard.thing.Thing;
@@ -19,7 +19,7 @@ class ThingConfigImpl implements ThingConfig {
     private final Thing thing;
     private final ConfigScope scope;
     private final String version;
-    private final ThingConnectOptions options;
+    private final ThingConnectOption options;
     private final String configFileURL;
     private final String checksum;
     private final AtomicReference<String> configRef = new AtomicReference<>();
@@ -28,13 +28,13 @@ class ThingConfigImpl implements ThingConfig {
      * 设备配置
      *
      * @param scope         配置范围
-     * @param version       配置版本
      * @param thing         设备
      * @param options       连接选项
+     * @param version       配置版本
      * @param configFileURL 配置下载地址
      * @param checksum      配置校验码
      */
-    public ThingConfigImpl(ConfigScope scope, String version, Thing thing, ThingConnectOptions options, String configFileURL, String checksum) {
+    public ThingConfigImpl(ConfigScope scope, Thing thing, ThingConnectOption options, String version, String configFileURL, String checksum) {
         this.scope = scope;
         this.version = version;
         this.thing = thing;

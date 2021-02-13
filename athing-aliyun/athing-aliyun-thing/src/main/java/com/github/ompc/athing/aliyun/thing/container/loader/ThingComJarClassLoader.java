@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.thing.kernel;
+package com.github.ompc.athing.aliyun.thing.container.loader;
 
 import com.github.ompc.athing.aliyun.thing.util.FileUtils;
 import com.github.ompc.athing.standard.thing.boot.spi.ThingComJarUnLoadSpi;
@@ -16,7 +16,7 @@ import java.util.ServiceLoader;
 /**
  * 组件库文件ClassLoader
  */
-class ThingComJarClassLoader extends URLClassLoader {
+public class ThingComJarClassLoader extends URLClassLoader {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final File tempComJarFile;

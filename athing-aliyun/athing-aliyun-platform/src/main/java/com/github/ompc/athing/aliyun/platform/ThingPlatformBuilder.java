@@ -35,16 +35,16 @@ public class ThingPlatformBuilder {
     /**
      * 构建设备平台:构建产品
      *
-     * @param regionId     区域ID
-     * @param acsAccessKey 设备产品AccessKey
+     * @param regionId 区域ID
+     * @param access   设备平台访问密钥
      * @return Building.this
      */
-    public Building building(String regionId, ThingPlatformAccessKey acsAccessKey) {
+    public Building building(String regionId, ThingPlatformAccess access) {
 
         final IAcsClient client = new DefaultAcsClient(getProfile(
                 regionId,
-                acsAccessKey.getAccessKeyId(),
-                acsAccessKey.getAccessKeySecret())
+                access.getIdentity(),
+                access.getSecret())
         );
 
         return new Building() {
@@ -72,10 +72,10 @@ public class ThingPlatformBuilder {
             }
 
             @Override
-            public Build consumer(String regionId, ThingPlatformAccessKey jmsAccessKey, String connectionUrl, String group, ThingMessageListener listener) {
+            public Build consumer(String regionId, ThingPlatformAccess access, String connectionUrl, String group, ThingMessageListener listener) {
                 return () -> {
                     consumer = ThingMessageConsumer.createThingMessageConsumer(
-                            jmsAccessKey,
+                            access,
                             connectionUrl,
                             group,
                             thProductStubMap.values().stream().collect(Collectors.toMap(
@@ -126,13 +126,13 @@ public class ThingPlatformBuilder {
          * </p>
          *
          * @param regionId      消息服务器区域ID
-         * @param jmsAccessKey  消息服务器AccessKey
+         * @param access        消息服务器访问密钥
          * @param connectionUrl 消息服务器URL
          * @param group         消息组
          * @param listener      消息监听器
          * @return IBuildingForThingPlatform.this
          */
-        Build consumer(String regionId, ThingPlatformAccessKey jmsAccessKey, String connectionUrl, String group, ThingMessageListener listener);
+        Build consumer(String regionId, ThingPlatformAccess access, String connectionUrl, String group, ThingMessageListener listener);
 
     }
 

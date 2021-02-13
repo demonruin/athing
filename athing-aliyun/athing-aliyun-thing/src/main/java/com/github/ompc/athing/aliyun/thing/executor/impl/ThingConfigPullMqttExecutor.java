@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.github.ompc.athing.aliyun.thing.executor.MqttPoster.MQTT_QOS_AT_LEAST_ONCE;
 import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateSequenceId;
+import static com.github.ompc.athing.standard.thing.config.ThingConfig.ConfigScope.PRODUCT;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -74,20 +75,14 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor {
         }
 
         // 通知成功
-        final String version = reply.getData().configId;
-        final String configURL = reply.getData().url;
-        final String configCHS = reply.getData().sign;
         thingOpCb.callback(reqId, ThingOpReplyImpl.success(
                 reply,
-                new ThingConfigImpl(
-                        ThingConfig.ConfigScope.PRODUCT,
-                        version,
-                        thing,
-                        thing.getThingConnOpts(),
-                        configURL,
-                        configCHS)
+                new ThingConfigImpl(PRODUCT, thing, thing.getThingConnOpt(),
+                        reply.getData().configId,
+                        reply.getData().url,
+                        reply.getData().sign
                 )
-        );
+        ));
     }
 
     private String pullThingConfig(ThingOpCb<ThingConfig> thingOpCb) throws ThingException {
@@ -102,7 +97,7 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor {
                                     .putProperty("version", "1.0")
                                     .putProperty("method", "thing.config.get")
                                     .enterProperty("params")
-                                    /**/.putProperty("configScope", ThingConfig.ConfigScope.PRODUCT)
+                                    /**/.putProperty("configScope", PRODUCT)
                                     /**/.putProperty("getType", "file")
                                     .exitProperty()));
             logger.info("{}/config/pull posted, req={};", thing, reqId);

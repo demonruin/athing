@@ -59,25 +59,25 @@ class ThingMessageConsumer implements Closeable {
     }
 
     // 计算并获取账号
-    private static String getUsername(final ThingPlatformAccessKey consumerAccessKey,
+    private static String getUsername(final ThingPlatformAccess access,
                                       final long timestamp,
                                       final String uniqueId,
                                       final String group) {
         return String.format("%s|authMode=aksign,signMethod=hmacsha1,timestamp=%s,authId=%s,consumerGroupId=%s|",
                 uniqueId,
                 timestamp,
-                consumerAccessKey.getAccessKeyId(),
+                access.getIdentity(),
                 group
         );
     }
 
     // 计算并获取密码
-    private static String getPassword(final ThingPlatformAccessKey consumerAccessKey,
+    private static String getPassword(final ThingPlatformAccess access,
                                       final long timestamp) {
-        final String content = String.format("authId=%s&timestamp=%s", consumerAccessKey.getAccessKeyId(), timestamp);
+        final String content = String.format("authId=%s&timestamp=%s", access.getIdentity(), timestamp);
         try {
             final Mac mac = Mac.getInstance("HMACSHA1");
-            mac.init(new SecretKeySpec(consumerAccessKey.getAccessKeySecret().getBytes(UTF_8), mac.getAlgorithm()));
+            mac.init(new SecretKeySpec(access.getSecret().getBytes(UTF_8), mac.getAlgorithm()));
             return Base64.getEncoder().encodeToString(mac.doFinal(content.getBytes(UTF_8)));
         } catch (Exception cause) {
             throw new IllegalStateException(cause);
@@ -87,14 +87,14 @@ class ThingMessageConsumer implements Closeable {
     /**
      * 构建消息消费者
      *
-     * @param jmsAccessKey  消息服务器AccessKey
+     * @param access        消息服务器Access
      * @param connectionUrl 消息服务器URL
      * @param group         消息组
      * @param listener      消息监听器
      * @return 消息消费者
      * @throws ThingPlatformException 构建失败
      */
-    public static ThingMessageConsumer createThingMessageConsumer(final ThingPlatformAccessKey jmsAccessKey,
+    public static ThingMessageConsumer createThingMessageConsumer(final ThingPlatformAccess access,
                                                                   final String connectionUrl,
                                                                   final String group,
                                                                   final Map<String, ThProductMeta> productMetaMap,
@@ -106,8 +106,8 @@ class ThingMessageConsumer implements Closeable {
         try {
             final Context context = createContext(connectionUrl, group);
             final Connection connection = ((ConnectionFactory) context.lookup("SBCF")).createConnection(
-                    getUsername(jmsAccessKey, timestamp, uniqueId, group),
-                    getPassword(jmsAccessKey, timestamp)
+                    getUsername(access, timestamp, uniqueId, group),
+                    getPassword(access, timestamp)
             );
             return new ThingMessageConsumer(String.format("/%s", group), context, connection, productMetaMap, listener);
         } catch (NamingException | JMSException cause) {

@@ -1,7 +1,6 @@
 package com.github.ompc.athing.standard.thing.boot;
 
 import com.github.ompc.athing.standard.component.ThingCom;
-import com.github.ompc.athing.standard.thing.Thing;
 
 import java.util.Properties;
 
@@ -22,12 +21,13 @@ public interface ThingComBoot {
     /**
      * 启动设备组件
      *
-     * @param thing     启动设备
-     * @param arguments 启动参数
+     * @param productId 产品ID
+     * @param thingId   设备ID
+     * @param bootOpt   启动选项
      * @return 设备组件
      * @throws Exception 启动失败
      */
-    ThingCom bootUp(Thing thing, String arguments) throws Exception;
+    ThingCom bootUp(String productId, String thingId, BootOption bootOpt) throws Exception;
 
     /**
      * 设备组件厂商信息
