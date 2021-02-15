@@ -69,7 +69,7 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor {
         try {
 
             // 检查模块是否存在
-            final Modular module = thing.getThingComMapOfType(Modular.class).values().stream()
+            final Modular module = thing.getThingComponents(Modular.class).stream()
                     .filter(modular -> Objects.equals(modular.getModuleId(), moduleId))
                     .findAny()
                     .orElse(null);

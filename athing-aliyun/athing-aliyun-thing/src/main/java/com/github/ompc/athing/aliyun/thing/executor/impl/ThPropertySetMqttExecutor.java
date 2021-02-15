@@ -3,7 +3,7 @@ package com.github.ompc.athing.aliyun.thing.executor.impl;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.container.ThingComStub;
+import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.standard.component.Identifier;
@@ -91,15 +91,15 @@ public class ThPropertySetMqttExecutor implements MqttExecutor {
             final Identifier identifier = Identifier.parseIdentity(identity);
 
             // 过滤掉未提供的组件
-            final ThingComStub thingComStub = thing.getThingComStubMap().get(identifier.getComponentId());
-            if (null == thingComStub) {
+            final ThComStub thComStub = thing.getThComStubMap().get(identifier.getComponentId());
+            if (null == thComStub) {
                 logger.warn("{}/property/set ignored, component: {} not provided, req={};identity={};",
                         thing, identifier.getComponentId(), reqId, identity);
                 return;
             }
 
             // 过滤掉未提供的属性
-            final ThPropertyMeta thPropertyMeta = thingComStub.getThComMeta().getIdentityThPropertyMetaMap().get(identifier);
+            final ThPropertyMeta thPropertyMeta = thComStub.getThComMeta().getIdentityThPropertyMetaMap().get(identifier);
             if (null == thPropertyMeta) {
                 logger.warn("{}/property/set ignored, property not provided, req={};identity={};",
                         thing, reqId, identity);
@@ -116,7 +116,7 @@ public class ThPropertySetMqttExecutor implements MqttExecutor {
             // 属性赋值
             try {
                 thPropertyMeta.setPropertyValue(
-                        thingComStub.getThingCom(),
+                        thComStub.getThingCom(),
                         gson.fromJson(entry.getValue(), thPropertyMeta.getPropertyType())
                 );
                 successIds.add(identity);

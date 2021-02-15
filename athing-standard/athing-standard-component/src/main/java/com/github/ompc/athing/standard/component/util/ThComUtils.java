@@ -1,6 +1,7 @@
 package com.github.ompc.athing.standard.component.util;
 
 import com.github.ompc.athing.standard.component.ThingCom;
+import com.github.ompc.athing.standard.component.annotation.ThCom;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -15,41 +16,43 @@ public class ThComUtils {
 
     /**
      * 获取目标设备组件类型中所有的组件接口
+     * <p>
+     * 所有被找出的接口都必须是以下特点
+     * <li>必须是一个接口</li>
+     * <li>必须是ThingCom的子类型</li>
+     * <li>必须拥有{@link ThCom}注解</li>
+     * </p>
      *
      * @param clazz 设备组件类型
      * @return 声明的组件接口集合
      */
-    public static Set<Class<? extends ThingCom>> getThingComInterfaces(Class<? extends ThingCom> clazz) {
+    public static Set<Class<? extends ThingCom>> getThComInterfaces(Class<? extends ThingCom> clazz) {
         final Set<Class<? extends ThingCom>> interfaces = new LinkedHashSet<>();
-        recGetThingComInterfaces(interfaces, clazz);
+        recGetThComInterfaces(interfaces, clazz);
         return interfaces;
     }
 
     // 递归寻找当前类所有的设备组件定义接口
-    private static void recGetThingComInterfaces(final Set<Class<? extends ThingCom>> interfaces,
-                                                 final Class<?> type) {
+    private static void recGetThComInterfaces(final Set<Class<? extends ThingCom>> interfaces,
+                                              final Class<?> type) {
         if (null == type) {
-            return;
-        }
-
-        // 去掉拆解到自己(ThingCom)
-        if (type == ThingCom.class) {
             return;
         }
 
         // 判断自己是否符合
         if (type.isInterface()
-                && ThingCom.class.isAssignableFrom(type)) {
+                && ThingCom.class.isAssignableFrom(type)
+                && type.isAnnotationPresent(ThCom.class)) {
             @SuppressWarnings("unchecked") final Class<? extends ThingCom> classOfThingCom = (Class<? extends ThingCom>) type;
             interfaces.add(classOfThingCom);
         }
 
         // 递归寻找继承的接口
         Arrays.stream(type.getInterfaces())
-                .forEach(anInterface -> recGetThingComInterfaces(interfaces, anInterface));
+                .forEach(anInterface -> recGetThComInterfaces(interfaces, anInterface));
 
         // 递归寻找父类
-        recGetThingComInterfaces(interfaces, type.getSuperclass());
+        recGetThComInterfaces(interfaces, type.getSuperclass());
 
     }
 

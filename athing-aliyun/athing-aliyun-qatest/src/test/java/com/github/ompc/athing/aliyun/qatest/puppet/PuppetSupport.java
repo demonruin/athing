@@ -52,7 +52,7 @@ public class PuppetSupport {
             THING_ID,
             properties.getProperty("athing.thing.secret")
     );
-    protected static final ThingPlatformAccess PLATFORM_ACCESS_KEY = new ThingPlatformAccess(
+    protected static final ThingPlatformAccess PLATFORM_ACCESS = new ThingPlatformAccess(
             properties.getProperty("athing-platform.access.id"),
             properties.getProperty("athing-platform.access.secret")
     );
@@ -116,7 +116,7 @@ public class PuppetSupport {
                         new QaThingComImpl(),
                         new ResourceThingComImpl(),
                         new ThingCom() {
-                        }
+                        },
                 })
                 .setThingConfigListener(qaThingConfigListener)
                 .setThingOpHook(thing -> logger.info("{} require reboot", thing))
@@ -125,11 +125,11 @@ public class PuppetSupport {
 
     private static ThingPlatform initPuppetThingPlatform() throws ThingPlatformException {
         return new ThingPlatformBuilder()
-                .building(DEFAULT_REGION_ID, PLATFORM_ACCESS_KEY)
+                .building(DEFAULT_REGION_ID, PLATFORM_ACCESS)
                 .product(PRODUCT_ID, DmgrThingCom.class, LightThingCom.class, EchoThingCom.class)
                 .consumer(
                         DEFAULT_REGION_ID,
-                        PLATFORM_ACCESS_KEY,
+                        PLATFORM_ACCESS,
                         PLATFORM_JMS_CONNECTION_URL,
                         PLATFORM_JMS_CONSUMER_GROUP,
                         new QaThingMessageGroupListener(new ThingMessageListener[]{

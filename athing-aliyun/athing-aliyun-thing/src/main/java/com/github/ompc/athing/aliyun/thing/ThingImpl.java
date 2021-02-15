@@ -108,13 +108,13 @@ public class ThingImpl extends ThingComContainerImpl implements Thing {
                             try {
                                 client.subscribe(topicExpress, (topic, message) -> workers.submit(() -> {
                                     try {
-                                        logger.debug("{}/mqtt received mqtt-message: {} -> {}", this, topic, message);
+                                        logger.debug("{}/mqtt received mqtt-message: {} -> {}", ThingImpl.this, topic, message);
                                         mqttExecutor.onMqttMessage(topic, message);
                                     } catch (Throwable cause) {
-                                        logger.warn("{}/mqtt consume message failure, topic={};message={};", this, topic, message, cause);
+                                        logger.warn("{}/mqtt consume message failure, topic={};message={};", ThingImpl.this, topic, message, cause);
                                     }
                                 }));
-                                logger.debug("{}/mqtt subscribe: {};", this, topicExpress);
+                                logger.debug("{}/mqtt subscribe: {};", ThingImpl.this, topicExpress);
                             } catch (MqttException cause) {
                                 throw new RuntimeException(
                                         String.format("subscribe topic: %s occur error", topicExpress),

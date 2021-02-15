@@ -59,7 +59,6 @@ public class ThingPlatformBuilder {
                         new ThProductMeta(
                                 Stream.of(thingComInterfaces)
                                         .map(ThComMetaFactory::make)
-                                        .filter(meta -> !meta.isAnonymous())
                                         .toArray(ThComMeta[]::new)
                         ));
                 thProductStubMap.put(productId, thProductStub);

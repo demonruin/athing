@@ -4,7 +4,7 @@ import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.container.ThingComStub;
+import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.aliyun.thing.executor.ThingOpPingPong;
@@ -138,8 +138,8 @@ public class ThingPostMqttExecutor implements MqttExecutor {
         final MapObject parameterMap = new MapObject();
         for (final Identifier identifier : identifiers) {
             // 模块不存在
-            final ThingComStub thingComStub = thing.getThingComStubMap().get(identifier.getComponentId());
-            if (null == thingComStub) {
+            final ThComStub thComStub = thing.getThComStubMap().get(identifier.getComponentId());
+            if (null == thComStub) {
                 throw new ThingException(thing, String.format("component: %s not existed, identity=%s;",
                         identifier.getComponentId(),
                         identifier
@@ -147,7 +147,7 @@ public class ThingPostMqttExecutor implements MqttExecutor {
             }
 
             // 属性元数据不存在
-            final ThPropertyMeta thPropertyMeta = thingComStub
+            final ThPropertyMeta thPropertyMeta = thComStub
                     .getThComMeta()
                     .getIdentityThPropertyMetaMap()
                     .get(identifier);
@@ -159,7 +159,7 @@ public class ThingPostMqttExecutor implements MqttExecutor {
 
             // 获取属性值
             try {
-                final Object propertyValue = thPropertyMeta.getPropertyValue(thingComStub.getThingCom());
+                final Object propertyValue = thPropertyMeta.getPropertyValue(thComStub.getThingCom());
                 parameterMap.enterProperty(identifier.getIdentity())
                         .putProperty("value", propertyValue)
                         .putProperty("time", new Date());

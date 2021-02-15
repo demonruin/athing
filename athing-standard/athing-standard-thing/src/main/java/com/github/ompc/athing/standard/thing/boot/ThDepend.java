@@ -14,10 +14,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ThDepend {
 
     /**
-     * 组件ID
+     * 是否必须
+     * <p>
+     * 默认为必须，非必须的依赖在组件不存在是注入为{@code null}
+     * </p>
      *
-     * @return 组件ID
+     * @return TRUE | FALSE
      */
-    String value() default "";
+    boolean isRequired() default true;
 
 }

@@ -120,23 +120,20 @@ public class ThComMetaFactory {
             );
         }
 
-        // 如果标注了设备组件注解，说明是一个命名设备组件
-        if (intf.isAnnotationPresent(ThCom.class)) {
-            final ThCom anThCom = intf.getAnnotation(ThCom.class);
-            final String thingComId = anThCom.id();
-            return new ThComMeta(
-                    anThCom,
-                    intf,
-                    generateIdentityThEventMetaMap(thingComId, intf),
-                    generateIdentityThPropertyMetaMap(thingComId, intf),
-                    generateIdentityThServiceMetaMap(thingComId, intf)
-            );
+        // 必须标注了@ThCom
+        if (!intf.isAnnotationPresent(ThCom.class)) {
+            throw new IllegalArgumentException("require @ThCom");
         }
 
-        // 如果没标注，说明是一个匿名设备组件
-        else {
-            return new ThComMeta(intf);
-        }
+        final ThCom anThCom = intf.getAnnotation(ThCom.class);
+        final String thingComId = anThCom.id();
+        return new ThComMeta(
+                anThCom,
+                intf,
+                generateIdentityThEventMetaMap(thingComId, intf),
+                generateIdentityThPropertyMetaMap(thingComId, intf),
+                generateIdentityThServiceMetaMap(thingComId, intf)
+        );
     }
 
 }

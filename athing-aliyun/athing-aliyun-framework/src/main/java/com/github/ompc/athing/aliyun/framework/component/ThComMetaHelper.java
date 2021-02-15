@@ -8,7 +8,7 @@ import com.github.ompc.athing.standard.component.ThingCom;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.github.ompc.athing.standard.component.util.ThComUtils.getThingComInterfaces;
+import static com.github.ompc.athing.standard.component.util.ThComUtils.getThComInterfaces;
 
 /**
  * 设备组件元数据工具类
@@ -22,7 +22,7 @@ public class ThComMetaHelper {
      * @return 组件元数据集合
      */
     public static Map<String, ThComMeta> getThComMetaMap(Class<? extends ThingCom> clazz) {
-        return getThingComInterfaces(clazz).stream()
+        return getThComInterfaces(clazz).stream()
                 .map(ThComMetaFactory::make)
                 .collect(Collectors.toMap(
                         ThComMeta::getThingComId,

@@ -6,12 +6,12 @@ import com.github.ompc.athing.standard.component.ThingCom;
 /**
  * 设备组件存根
  */
-public class ThingComStub {
+public class ThComStub {
 
     private final ThComMeta thComMeta;
     private final ThingCom thingCom;
 
-    public ThingComStub(ThComMeta thComMeta, ThingCom thingCom) {
+    public ThComStub(ThComMeta thComMeta, ThingCom thingCom) {
         this.thComMeta = thComMeta;
         this.thingCom = thingCom;
     }

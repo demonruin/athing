@@ -59,7 +59,6 @@ public class TslDumper {
                 productId,
                 Stream.of(thingComInterfaces)
                         .map(ThComMetaFactory::make)
-                        .filter(meta -> !meta.isAnonymous())
                         .toArray(ThComMeta[]::new)
         ).dump(dumpToJson);
     }

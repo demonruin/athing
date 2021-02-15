@@ -5,9 +5,6 @@ import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.component.annotation.ThCom;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * 设备组件元数据
@@ -17,29 +14,12 @@ import static java.util.Collections.emptyMap;
  */
 public class ThComMeta {
 
-    private final static AtomicInteger sequencer = new AtomicInteger(1000);
     private final String thingComId;
     private final ThCom anThCom;
     private final Class<?> thingComType;
     private final Map<Identifier, ThEventMeta> identityThEventMetaMap;
     private final Map<Identifier, ThPropertyMeta> identityThPropertyMetaMap;
     private final Map<Identifier, ThServiceMeta> identityThServiceMetaMap;
-
-    /**
-     * 匿名设备组件
-     *
-     * @param thingComType 设备组件接口类型
-     */
-    public ThComMeta(final Class<?> thingComType) {
-        this(
-                String.format("%s#%d", thingComType.getName(), sequencer.getAndIncrement()),
-                null,
-                thingComType,
-                emptyMap(),
-                emptyMap(),
-                emptyMap()
-        );
-    }
 
     /**
      * 命名设备组件
@@ -81,19 +61,6 @@ public class ThComMeta {
     }
 
     /**
-     * 是否匿名组件
-     * <p>
-     * 匿名组件不会参与到物模型中暴露自己的属性、方法、事件，只提供接口本地调用。
-     * 适用于功能型组件
-     * </p>
-     *
-     * @return TRUE | FALSE
-     */
-    public boolean isAnonymous() {
-        return anThCom == null;
-    }
-
-    /**
      * 获取设备组件ID
      *
      * @return 设备组件ID
@@ -108,7 +75,7 @@ public class ThComMeta {
      * @return 设备组件名称
      */
     public String getThingComName() {
-        return isAnonymous() ? null : anThCom.name();
+        return anThCom.name();
     }
 
     /**
@@ -117,7 +84,7 @@ public class ThComMeta {
      * @return 设备组件描述
      */
     public String getThingComDesc() {
-        return isAnonymous() ? null : anThCom.desc();
+        return anThCom.desc();
     }
 
     /**

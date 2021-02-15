@@ -3,7 +3,7 @@ package com.github.ompc.athing.aliyun.thing.executor.impl;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.container.ThingComStub;
+import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.standard.component.Identifier;
@@ -53,7 +53,7 @@ public class ThServiceInvokeMqttExecutor implements MqttExecutor {
 
         // 订阅异步服务调用MQTT主题
         topicExpress.addAll(
-                thing.getThingComStubMap().values().stream()
+                thing.getThComStubMap().values().stream()
                         .flatMap(stub -> stub.getThComMeta().getIdentityThServiceMetaMap().values().stream())
                         .filter(meta -> !meta.isSync())
                         .map(meta -> meta.getIdentifier().getIdentity())
@@ -114,15 +114,15 @@ public class ThServiceInvokeMqttExecutor implements MqttExecutor {
         final Identifier identifier = Identifier.parseIdentity(identity);
 
         // 过滤掉未提供的组件
-        final ThingComStub thingComStub = thing.getThingComStubMap().get(identifier.getComponentId());
-        if (null == thingComStub) {
+        final ThComStub thComStub = thing.getThComStubMap().get(identifier.getComponentId());
+        if (null == thComStub) {
             reply(invoker, ALINK_REPLY_REQUEST_ERROR, format("component: %s not provided", identifier.getComponentId()));
             logger.warn("{}/service component is not provided, req={};identity={};", thing, reqId, identity);
             return;
         }
 
         // 过滤掉未提供的服务
-        final ThServiceMeta thServiceMeta = thingComStub.getThComMeta().getIdentityThServiceMetaMap().get(identifier);
+        final ThServiceMeta thServiceMeta = thComStub.getThComMeta().getIdentityThServiceMetaMap().get(identifier);
         if (null == thServiceMeta) {
             reply(invoker, ALINK_REPLY_SERVICE_NOT_PROVIDED, format("service: %s not provided", identity));
             logger.warn("{}/service service is not provided, req={};identity={};", thing, reqId, identity);
@@ -134,7 +134,7 @@ public class ThServiceInvokeMqttExecutor implements MqttExecutor {
         try {
             final JsonObject argumentJsonObject = requestJsonObject.get("params").getAsJsonObject();
             result = thServiceMeta.service(
-                    thingComStub.getThingCom(),
+                    thComStub.getThingCom(),
                     (name, type) -> gson.fromJson(argumentJsonObject.get(name), type)
             );
         } catch (Throwable cause) {
