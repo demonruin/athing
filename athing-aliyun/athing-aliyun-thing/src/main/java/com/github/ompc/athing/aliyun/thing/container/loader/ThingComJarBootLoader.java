@@ -35,7 +35,7 @@ public class ThingComJarBootLoader extends ThingComBootLoader {
         return new LinkedHashSet<ThingCom>() {{
             try {
                 for (final ThingComBoot boot : ServiceLoader.load(ThingComBoot.class, loader)) {
-                    add(getOnBoot().onBoot(boot));
+                    add(getOnBoot().onBoot(productId, thingId, boot));
                 }
             } catch (Exception cause) {
                 logger.warn("thing:/{}/{} booting jar failure, {} will be closed!", productId, thingId, loader);

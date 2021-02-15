@@ -111,13 +111,13 @@ public class PuppetSupport {
     private static Thing initPuppetThing() throws Exception {
         return new ThingConnector()
                 .connecting(THING_SERVER_URL, THING_ACCESS)
-                .load(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"), boot -> boot.bootUp(PRODUCT_ID, THING_ID, null))
-                .load((productId, thingId) -> new ThingCom[]{
+                .load(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"))
+                .load(
                         new QaThingComImpl(),
                         new ResourceThingComImpl(),
                         new ThingCom() {
-                        },
-                })
+                        }
+                )
                 .setThingConfigListener(qaThingConfigListener)
                 .setThingOpHook(thing -> logger.info("{} require reboot", thing))
                 .connect(new ThingConnectOption());

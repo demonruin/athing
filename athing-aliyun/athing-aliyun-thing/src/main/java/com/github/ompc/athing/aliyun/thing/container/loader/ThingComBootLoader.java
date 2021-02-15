@@ -36,11 +36,13 @@ abstract public class ThingComBootLoader implements ThingComLoader {
         /**
          * 引导
          *
-         * @param boot 设备组件引导
+         * @param productId 产品ID
+         * @param thingId   设备ID
+         * @param boot      设备组件引导
          * @return 设备组件
          * @throws Exception 引导失败
          */
-        ThingCom onBoot(ThingComBoot boot) throws Exception;
+        ThingCom onBoot(String productId, String thingId, ThingComBoot boot) throws Exception;
 
     }
 

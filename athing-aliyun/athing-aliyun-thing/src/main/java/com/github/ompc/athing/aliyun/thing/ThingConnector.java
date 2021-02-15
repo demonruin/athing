@@ -4,6 +4,7 @@ import com.github.ompc.athing.aliyun.framework.util.IOUtils;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComBootLoader.OnBoot;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComJarBootLoader;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
+import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
@@ -47,16 +48,26 @@ public class ThingConnector {
             };
 
             @Override
-            public Connecting load(ThingComLoader... loaders) {
-                if (null != loaders) {
-                    thingComLoaders.addAll(Arrays.asList(loaders));
-                }
-                return this;
+            public Connecting load(ThingCom... thingComComponents) {
+                return load((productId, thingId) -> thingComComponents);
             }
 
             @Override
             public Connecting load(File comJarFile, OnBoot onBoot) {
                 return load(new ThingComJarBootLoader(comJarFile, onBoot));
+            }
+
+            @Override
+            public Connecting load(File comJarFile) {
+                return load(comJarFile, (productId, thingId, boot) -> null);
+            }
+
+            @Override
+            public Connecting load(ThingComLoader... loaders) {
+                if (null != loaders) {
+                    thingComLoaders.addAll(Arrays.asList(loaders));
+                }
+                return this;
             }
 
             @Override
@@ -102,10 +113,10 @@ public class ThingConnector {
         /**
          * 加载设备组件
          *
-         * @param loaders 设备组件加载器
+         * @param thingComComponents 设备组件集合
          * @return this
          */
-        Connecting load(ThingComLoader... loaders);
+        Connecting load(ThingCom... thingComComponents);
 
         /**
          * 加载设备组件库文件
@@ -115,6 +126,22 @@ public class ThingConnector {
          * @return this
          */
         Connecting load(File comJarFile, OnBoot onBoot);
+
+        /**
+         * 加载设备组件库文件
+         *
+         * @param comJarFile 设备组件库文件
+         * @return this
+         */
+        Connecting load(File comJarFile);
+
+        /**
+         * 加载设备组件
+         *
+         * @param loaders 设备组件加载器
+         * @return this
+         */
+        Connecting load(ThingComLoader... loaders);
 
         /**
          * 设置设备配置监听器
