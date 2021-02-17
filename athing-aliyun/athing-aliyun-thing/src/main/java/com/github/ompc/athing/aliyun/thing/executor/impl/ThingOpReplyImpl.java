@@ -2,7 +2,7 @@ package com.github.ompc.athing.aliyun.thing.executor.impl;
 
 import com.github.ompc.athing.standard.thing.ThingOpCb;
 
-class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
+public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
 
     private final boolean isReplySuccess;
     private final String replyCode;

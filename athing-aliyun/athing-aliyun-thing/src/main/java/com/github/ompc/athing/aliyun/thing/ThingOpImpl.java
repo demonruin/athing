@@ -3,7 +3,13 @@ package com.github.ompc.athing.aliyun.thing;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.aliyun.thing.executor.ThingOpPingPong;
-import com.github.ompc.athing.aliyun.thing.executor.impl.*;
+import com.github.ompc.athing.aliyun.thing.executor.impl.ThingPostMqttExecutor;
+import com.github.ompc.athing.aliyun.thing.executor.impl.ThingPropertySetMqttExecutor;
+import com.github.ompc.athing.aliyun.thing.executor.impl.ThingServiceInvokeMqttExecutor;
+import com.github.ompc.athing.aliyun.thing.executor.impl.config.ThingConfigPullMqttExecutor;
+import com.github.ompc.athing.aliyun.thing.executor.impl.config.ThingConfigPushMqttExecutor;
+import com.github.ompc.athing.aliyun.thing.executor.impl.modular.ThingModularReportPostMqttExecutor;
+import com.github.ompc.athing.aliyun.thing.executor.impl.modular.ThingModularUpgradePushMqttExecutor;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.thing.ThingException;
@@ -20,6 +26,7 @@ class ThingOpImpl implements ThingOp {
 
     private final ThingImpl thing;
     private final MqttExecutor[] mqttExecutors;
+    private final ThingModularReportPostMqttExecutor thingModularReportPostMqttExecutor;
     private final ThingConfigPullMqttExecutor thingConfigPullMqttExecutor;
     private final ThingPostMqttExecutor thingPostMqttExecutor;
 
@@ -28,12 +35,13 @@ class ThingOpImpl implements ThingOp {
         final MqttPoster poster = new MqttPoster(thing, client);
         final ThingOpPingPong pingPong = new ThingOpPingPong();
         mqttExecutors = new MqttExecutor[]{
-                thingConfigPullMqttExecutor = new ThingConfigPullMqttExecutor(thing, poster, pingPong),
-                thingPostMqttExecutor = new ThingPostMqttExecutor(thing, poster, pingPong),
+                this.thingModularReportPostMqttExecutor = new ThingModularReportPostMqttExecutor(thing, poster),
+                this.thingConfigPullMqttExecutor = new ThingConfigPullMqttExecutor(thing, poster, pingPong),
+                this.thingPostMqttExecutor = new ThingPostMqttExecutor(thing, poster, pingPong),
                 new ThingModularUpgradePushMqttExecutor(thing, poster),
                 new ThingConfigPushMqttExecutor(thing, poster),
-                new ThPropertySetMqttExecutor(thing, poster),
-                new ThServiceInvokeMqttExecutor(thing, poster),
+                new ThingPropertySetMqttExecutor(thing, poster),
+                new ThingServiceInvokeMqttExecutor(thing, poster),
         };
     }
 
@@ -53,7 +61,7 @@ class ThingOpImpl implements ThingOp {
 
     @Override
     public String reportModule(Modular module, ThingOpCb<Void> thingOpCb) throws ThingException {
-        return thingPostMqttExecutor.reportModule(module, thingOpCb);
+        return thingModularReportPostMqttExecutor.reportModule(module, thingOpCb);
     }
 
     @Override

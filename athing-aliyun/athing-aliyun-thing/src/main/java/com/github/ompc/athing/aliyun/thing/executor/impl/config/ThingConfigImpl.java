@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.thing.executor.impl;
+package com.github.ompc.athing.aliyun.thing.executor.impl.config;
 
 import com.github.ompc.athing.aliyun.thing.ThingConnectOption;
 import com.github.ompc.athing.aliyun.thing.util.HttpUtils;

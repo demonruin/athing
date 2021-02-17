@@ -55,7 +55,7 @@ public class MqttPoster {
             mqttMessage.setRetained(false);
             mqttMessage.setQos(qos);
             client.publish(topic, mqttMessage);
-            logger.debug("{}/mqtt post qos={}; message -> {}", thing, qos, payload);
+            logger.debug("{}/mqtt post topic={};qos={}; message -> {}", thing, topic, qos, payload);
         } catch (Throwable cause) {
             throw new ThingException(
                     thing,

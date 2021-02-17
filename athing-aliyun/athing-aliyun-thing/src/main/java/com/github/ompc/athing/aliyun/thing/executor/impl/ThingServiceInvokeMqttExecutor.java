@@ -28,7 +28,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 服务调用MQTT执行器
  */
-public class ThServiceInvokeMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
+public class ThingServiceInvokeMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -38,7 +38,7 @@ public class ThServiceInvokeMqttExecutor implements MqttExecutor, MqttExecutor.M
     private final JsonParser parser = new JsonParser();
     private final Gson gson = GsonFactory.getGson();
 
-    public ThServiceInvokeMqttExecutor(ThingImpl thing, MqttPoster poster) {
+    public ThingServiceInvokeMqttExecutor(ThingImpl thing, MqttPoster poster) {
         this.thing = thing;
         this.poster = poster;
     }

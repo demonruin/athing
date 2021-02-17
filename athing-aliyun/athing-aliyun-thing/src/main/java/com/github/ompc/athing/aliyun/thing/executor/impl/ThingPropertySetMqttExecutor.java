@@ -29,7 +29,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 设备属性赋值执行器
  */
-public class ThPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
+public class ThingPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,7 +39,7 @@ public class ThPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.Mqt
     private final ThingImpl thing;
     private final MqttPoster poster;
 
-    public ThPropertySetMqttExecutor(ThingImpl thing, MqttPoster poster) {
+    public ThingPropertySetMqttExecutor(ThingImpl thing, MqttPoster poster) {
         this.thing = thing;
         this.poster = poster;
     }

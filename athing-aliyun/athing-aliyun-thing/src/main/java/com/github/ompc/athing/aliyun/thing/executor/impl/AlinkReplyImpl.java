@@ -6,7 +6,7 @@ package com.github.ompc.athing.aliyun.thing.executor.impl;
  * 阿里云的物模型通过MQTT协议传输的时候走的是Alink协议
  * </p>
  */
-class AlinkReplyImpl<E> {
+public class AlinkReplyImpl<E> {
 
     /**
      * 成功

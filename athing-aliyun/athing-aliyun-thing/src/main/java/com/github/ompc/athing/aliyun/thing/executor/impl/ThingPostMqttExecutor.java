@@ -12,7 +12,6 @@ import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.ThingOpCb;
-import com.github.ompc.athing.standard.thing.boot.Modular;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -214,45 +213,6 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
 
         return reqId;
 
-    }
-
-    /**
-     * 报告设备模块信息
-     * ThingComModular
-     *
-     * @param module    模块
-     * @param thingOpCb 回调
-     * @return 请求ID
-     */
-    public String reportModule(Modular module, ThingOpCb<Void> thingOpCb) throws ThingException {
-
-        final String reqId = generateSequenceId();
-        final String topic = format("/ota/device/inform/%s/%s", thing.getProductId(), thing.getThingId());
-
-        try {
-            poster.post(topic,
-                    new MapObject()
-                            .putProperty("id", reqId)
-                            .enterProperty("params")
-                            /**/.putProperty("module", module.getModuleId())
-                            /**/.putProperty("version", module.getModuleVersion())
-                            .exitProperty());
-            logger.info("{}/module report version, req={};module={};version={};",
-                    thing,
-                    reqId,
-                    module.getModuleId(),
-                    module.getModuleVersion()
-            );
-        } catch (Throwable cause) {
-            throw new ThingException(thing, String.format("module: %s post version failure", module.getModuleId()));
-        }
-
-        // 因为阿里云的实现中，上报版本平台不会给回馈
-        // 所以这里只能自己构造一个阿里云的成功回馈回来
-        thingOpCb.callback(reqId,
-                ThingOpReplyImpl.empty(AlinkReplyImpl.success(reqId, "success")));
-
-        return reqId;
     }
 
 }

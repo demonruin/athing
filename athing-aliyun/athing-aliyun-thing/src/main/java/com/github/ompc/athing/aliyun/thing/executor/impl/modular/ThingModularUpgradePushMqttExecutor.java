@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.thing.executor.impl;
+package com.github.ompc.athing.aliyun.thing.executor.impl.modular;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;

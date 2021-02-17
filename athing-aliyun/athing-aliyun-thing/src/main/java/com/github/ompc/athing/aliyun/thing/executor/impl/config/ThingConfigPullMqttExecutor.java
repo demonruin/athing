@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.thing.executor.impl;
+package com.github.ompc.athing.aliyun.thing.executor.impl.config;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
@@ -6,6 +6,8 @@ import com.github.ompc.athing.aliyun.thing.ThingImpl;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.aliyun.thing.executor.ThingOpPingPong;
+import com.github.ompc.athing.aliyun.thing.executor.impl.AlinkReplyImpl;
+import com.github.ompc.athing.aliyun.thing.executor.impl.ThingOpReplyImpl;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.ThingOpCb;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
