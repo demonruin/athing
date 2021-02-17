@@ -5,6 +5,7 @@ import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
+import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -25,7 +26,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 设备配置推送执行器
  */
-public class ThingConfigPushMqttExecutor implements MqttExecutor {
+public class ThingConfigPushMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ThingImpl thing;
@@ -38,14 +39,15 @@ public class ThingConfigPushMqttExecutor implements MqttExecutor {
     }
 
     @Override
-    public String[] getMqttTopicExpress() {
-        return new String[]{
-                format("/sys/%s/%s/thing/config/push", thing.getProductId(), thing.getThingId())
-        };
+    public void init(MqttSubscriber subscriber) throws ThingException {
+        subscriber.subscribe(
+                format("/sys/%s/%s/thing/config/push", thing.getProductId(), thing.getThingId()),
+                this
+        );
     }
 
     @Override
-    public void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) throws Exception {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) throws Exception {
 
         final PushConfig pushConfig = gson.fromJson(new String(mqttMessage.getPayload(), UTF_8), PushConfig.class);
         final String reqId = pushConfig.id;

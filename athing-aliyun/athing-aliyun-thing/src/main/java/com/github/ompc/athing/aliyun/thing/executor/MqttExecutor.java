@@ -1,5 +1,6 @@
 package com.github.ompc.athing.aliyun.thing.executor;
 
+import com.github.ompc.athing.standard.thing.ThingException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
@@ -8,19 +9,43 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 public interface MqttExecutor {
 
     /**
-     * 获订阅的MQTT主题表达式
+     * 初始化
      *
-     * @return MQTT主题表达式
+     * @param subscriber 订阅器
+     * @throws ThingException 订阅失败
      */
-    String[] getMqttTopicExpress();
+    void init(MqttSubscriber subscriber) throws ThingException;
 
     /**
-     * 处理MQTT消息
-     *
-     * @param mqttTopic   MQTT主题
-     * @param mqttMessage MQTT消息
-     * @throws Exception 处理失败
+     * 订阅器
      */
-    void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) throws Exception;
+    interface MqttSubscriber {
+
+        /**
+         * 订阅MQTT主题
+         *
+         * @param mqttTopicExpress   主题表达式
+         * @param mqttMessageHandler 消息处理器
+         * @throws ThingException 处理失败
+         */
+        void subscribe(String mqttTopicExpress, MqttMessageHandler mqttMessageHandler) throws ThingException;
+
+    }
+
+    /**
+     * MQTT消息处理器
+     */
+    interface MqttMessageHandler {
+
+        /**
+         * 处理MQTT消息
+         *
+         * @param mqttTopic   消息主题
+         * @param mqttMessage 消息
+         * @throws Exception 处理失败
+         */
+        void handle(String mqttTopic, MqttMessage mqttMessage) throws Exception;
+
+    }
 
 }

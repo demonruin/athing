@@ -121,7 +121,6 @@ public class PuppetTestCase extends PuppetSupport {
     }
 
     @Test
-    @Ignore
     public void test$thing_upgrade_module$success() throws ThingException, InterruptedException, TimeoutException {
         final ResourceThingCom resourceThingCom = tPuppet.getThingComponent(ResourceThingCom.class, true);
         tPuppet.getThingOp().reportModule(resourceThingCom, (id, reply) -> {

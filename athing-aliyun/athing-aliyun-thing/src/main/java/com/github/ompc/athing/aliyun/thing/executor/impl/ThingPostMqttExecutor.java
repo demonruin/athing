@@ -31,7 +31,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 设备上报平台执行器
  */
-public class ThingPostMqttExecutor implements MqttExecutor {
+public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -49,14 +49,16 @@ public class ThingPostMqttExecutor implements MqttExecutor {
     }
 
     @Override
-    public String[] getMqttTopicExpress() {
-        return new String[]{
-                format("/sys/%s/%s/thing/event/+/post_reply", thing.getProductId(), thing.getThingId())
-        };
+    public void init(MqttSubscriber subscriber) throws ThingException {
+        subscriber.subscribe(
+                format("/sys/%s/%s/thing/event/+/post_reply", thing.getProductId(), thing.getThingId()),
+                this
+        );
     }
 
     @Override
-    public void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) {
+
         // 解析alink应答数据
         final AlinkReplyImpl<Map<String, String>> reply = gson.fromJson(
                 new String(mqttMessage.getPayload(), UTF_8),
@@ -252,6 +254,5 @@ public class ThingPostMqttExecutor implements MqttExecutor {
 
         return reqId;
     }
-
 
 }

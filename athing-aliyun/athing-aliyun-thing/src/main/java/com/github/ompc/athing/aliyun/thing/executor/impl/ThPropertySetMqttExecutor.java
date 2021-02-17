@@ -7,6 +7,7 @@ import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
 import com.github.ompc.athing.standard.component.Identifier;
+import com.github.ompc.athing.standard.thing.ThingException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -28,7 +29,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 设备属性赋值执行器
  */
-public class ThPropertySetMqttExecutor implements MqttExecutor {
+public class ThPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -44,14 +45,15 @@ public class ThPropertySetMqttExecutor implements MqttExecutor {
     }
 
     @Override
-    public String[] getMqttTopicExpress() {
-        return new String[]{
-                format("/sys/%s/%s/thing/service/property/set", thing.getProductId(), thing.getThingId())
-        };
+    public void init(MqttSubscriber subscriber) throws ThingException {
+        subscriber.subscribe(
+                format("/sys/%s/%s/thing/service/property/set", thing.getProductId(), thing.getThingId()),
+                this
+        );
     }
 
     @Override
-    public void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) throws Exception {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) throws Exception {
 
         final JsonObject requestJsonObject = parser.parse(new String(mqttMessage.getPayload(), UTF_8)).getAsJsonObject();
         final String reqId = requestJsonObject.get("id").getAsString();

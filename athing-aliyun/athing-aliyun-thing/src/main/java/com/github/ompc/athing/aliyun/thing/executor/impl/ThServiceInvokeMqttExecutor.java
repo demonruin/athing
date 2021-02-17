@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.github.ompc.athing.aliyun.framework.util.GsonFactory.getEmptyIfNull;
@@ -29,7 +28,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 服务调用MQTT执行器
  */
-public class ThServiceInvokeMqttExecutor implements MqttExecutor {
+public class ThServiceInvokeMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -45,59 +44,31 @@ public class ThServiceInvokeMqttExecutor implements MqttExecutor {
     }
 
     @Override
-    public String[] getMqttTopicExpress() {
-        final Set<String> topicExpress = new LinkedHashSet<>();
+    public void init(MqttSubscriber subscriber) throws ThingException {
+        for (final String topicExpress : new LinkedHashSet<String>() {{
+            // 订阅同步服务调用RRPC主题
+            add(format("/ext/rrpc/+/sys/%s/%s/thing/service/+", thing.getProductId(), thing.getThingId()));
 
-        // 订阅同步服务调用RRPC主题
-        topicExpress.add(format("/ext/rrpc/+/sys/%s/%s/thing/service/+", thing.getProductId(), thing.getThingId()));
-
-        // 订阅异步服务调用MQTT主题
-        topicExpress.addAll(
-                thing.getThComStubMap().values().stream()
-                        .flatMap(stub -> stub.getThComMeta().getIdentityThServiceMetaMap().values().stream())
-                        .filter(meta -> !meta.isSync())
-                        .map(meta -> meta.getIdentifier().getIdentity())
-                        .map(identifier -> format("/sys/%s/%s/thing/service/%s",
-                                thing.getProductId(),
-                                thing.getThingId(),
-                                identifier
-                        ))
-                        .collect(Collectors.toSet())
-        );
-
-        return topicExpress.toArray(new String[0]);
+            // 订阅异步服务调用MQTT主题
+            addAll(
+                    thing.getThComStubMap().values().stream()
+                            .flatMap(stub -> stub.getThComMeta().getIdentityThServiceMetaMap().values().stream())
+                            .filter(meta -> !meta.isSync())
+                            .map(meta -> meta.getIdentifier().getIdentity())
+                            .map(identifier -> format("/sys/%s/%s/thing/service/%s",
+                                    thing.getProductId(),
+                                    thing.getThingId(),
+                                    identifier
+                            ))
+                            .collect(Collectors.toSet())
+            );
+        }}) {
+            subscriber.subscribe(topicExpress, this);
+        }
     }
-
-    /**
-     * 应答
-     *
-     * @param invoker 服务调用者
-     * @param code    alink返回码
-     * @param message alink返回信息
-     * @throws ThingException 应答异常
-     */
-    private void reply(ThingServiceInvoker invoker, int code, String message) throws ThingException {
-        poster.post(invoker.getReplyTopic(), invoker.getQos(), failure(invoker.reqId, code, message));
-    }
-
-    /**
-     * 应答
-     *
-     * @param invoker 服务调用者
-     * @param result  设备组件返回
-     * @throws ThingException 应答异常
-     */
-    private void reply(ThingServiceInvoker invoker, Object result) throws ThingException {
-        poster.post(
-                invoker.getReplyTopic(),
-                invoker.getQos(),
-                success(invoker.reqId, "success", getEmptyIfNull(result))
-        );
-    }
-
 
     @Override
-    public void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) throws Exception {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) throws Exception {
 
         final JsonObject requestJsonObject = parser.parse(new String(mqttMessage.getPayload(), UTF_8)).getAsJsonObject();
         final ThingServiceInvoker invoker = new ThingServiceInvoker(mqttTopic, requestJsonObject);
@@ -146,6 +117,33 @@ public class ThServiceInvokeMqttExecutor implements MqttExecutor {
         reply(invoker, result);
         logger.info("{}/service invoke success, req={};identity={};", thing, reqId, identity);
 
+    }
+
+    /**
+     * 应答
+     *
+     * @param invoker 服务调用者
+     * @param code    alink返回码
+     * @param message alink返回信息
+     * @throws ThingException 应答异常
+     */
+    private void reply(ThingServiceInvoker invoker, int code, String message) throws ThingException {
+        poster.post(invoker.getReplyTopic(), invoker.getQos(), failure(invoker.reqId, code, message));
+    }
+
+    /**
+     * 应答
+     *
+     * @param invoker 服务调用者
+     * @param result  设备组件返回
+     * @throws ThingException 应答异常
+     */
+    private void reply(ThingServiceInvoker invoker, Object result) throws ThingException {
+        poster.post(
+                invoker.getReplyTopic(),
+                invoker.getQos(),
+                success(invoker.reqId, "success", getEmptyIfNull(result))
+        );
     }
 
 

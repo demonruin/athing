@@ -30,7 +30,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * 平台推送设备固件升级执行器
  * <a href="https://help.aliyun.com/document_detail/89307.html">固件升级</a>
  */
-public class ThingModularUpgradePushMqttExecutor implements MqttExecutor {
+public class ThingModularUpgradePushMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ThingImpl thing;
@@ -43,14 +43,15 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor {
     }
 
     @Override
-    public String[] getMqttTopicExpress() {
-        return new String[]{
-                format("/ota/device/upgrade/%s/%s", thing.getProductId(), thing.getThingId())
-        };
+    public void init(MqttSubscriber subscriber) throws ThingException {
+        subscriber.subscribe(
+                format("/ota/device/upgrade/%s/%s", thing.getProductId(), thing.getThingId()),
+                this
+        );
     }
 
     @Override
-    public void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) {
 
         final PushUpgrade pushUpgrade = gson.fromJson(new String(mqttMessage.getPayload(), UTF_8), PushUpgrade.class);
         final String reqId = pushUpgrade.id;

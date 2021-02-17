@@ -27,7 +27,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * 设备配置主动请求执行器
  */
-public class ThingConfigPullMqttExecutor implements MqttExecutor {
+public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.MqttMessageHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ThingImpl thing;
@@ -43,14 +43,16 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor {
     }
 
     @Override
-    public String[] getMqttTopicExpress() {
-        return new String[]{
-                format("/sys/%s/%s/thing/config/get_reply", thing.getProductId(), thing.getThingId())
-        };
+    public void init(MqttSubscriber subscriber) throws ThingException {
+        subscriber.subscribe(
+                format("/sys/%s/%s/thing/config/get_reply", thing.getProductId(), thing.getThingId()),
+                this
+        );
     }
 
     @Override
-    public void onMqttMessage(String mqttTopic, MqttMessage mqttMessage) {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) {
+
         final AlinkReplyImpl<ThingConfigPullData> reply = gson.fromJson(
                 new String(mqttMessage.getPayload(), UTF_8),
                 new TypeToken<AlinkReplyImpl<ThingConfigPullData>>() {

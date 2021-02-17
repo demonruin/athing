@@ -102,27 +102,30 @@ public class ThingImpl extends ThingComContainerImpl implements Thing {
                 @Override
                 public void connectComplete(boolean reconnect, String serverURI) {
 
-                    // 订阅处理MQTT消息
                     for (final MqttExecutor mqttExecutor : thingOp.getMqttExecutors()) {
-                        for (final String topicExpress : mqttExecutor.getMqttTopicExpress()) {
-                            try {
-                                client.subscribe(topicExpress, (topic, message) -> workers.submit(() -> {
-                                    try {
-                                        logger.debug("{}/mqtt received mqtt-message: {} -> {}", ThingImpl.this, topic, message);
-                                        mqttExecutor.onMqttMessage(topic, message);
-                                    } catch (Throwable cause) {
-                                        logger.warn("{}/mqtt consume message failure, topic={};message={};", ThingImpl.this, topic, message, cause);
-                                    }
-                                }));
-                                logger.debug("{}/mqtt subscribe: {};", ThingImpl.this, topicExpress);
-                            } catch (MqttException cause) {
-                                throw new RuntimeException(
-                                        String.format("subscribe topic: %s occur error", topicExpress),
-                                        cause
-                                );
-                            } // try
-                        } // for
-                    }// for
+                        try {
+                            mqttExecutor.init((topicExpress, handler) -> {
+                                try {
+                                    client.subscribe(topicExpress, (topic, message) -> workers.submit(() -> {
+                                        try {
+                                            logger.debug("{}/mqtt received message: {} -> {}", ThingImpl.this, topic, message);
+                                            handler.handle(topic, message);
+                                        } catch (Throwable cause) {
+                                            logger.warn("{}/mqtt consume message failure, topic={};message={};", ThingImpl.this, topic, message, cause);
+                                        }
+                                    }));
+                                } catch (MqttException cause) {
+                                    throw new ThingException(
+                                            ThingImpl.this,
+                                            String.format("subscribe topic: %s occur error!", topicExpress),
+                                            cause
+                                    );
+                                }
+                            });
+                        } catch (ThingException cause) {
+                            throw new RuntimeException("init mqtt-executor occur error!", cause);
+                        }
+                    }
 
                     logger.info("{}/mqtt connect success at {} times", ThingImpl.this, reConnCntRef.getAndSet(1));
 
