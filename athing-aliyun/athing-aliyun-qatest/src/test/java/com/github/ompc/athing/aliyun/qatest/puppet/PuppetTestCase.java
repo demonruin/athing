@@ -23,6 +23,7 @@ import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +92,7 @@ public class PuppetTestCase extends PuppetSupport {
     @Test
     public void test$platform_invoke_sync_service$success() {
         final EchoThingCom.Echo echo = tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
-                .getThingCom(EchoThingCom.THING_COM_ID, EchoThingCom.class)
+                .getThingComponent(EchoThingCom.class)
                 .echoBySync("HELLO!");
         Assert.assertEquals("HELLO!", echo.getWords());
     }
@@ -100,7 +101,7 @@ public class PuppetTestCase extends PuppetSupport {
     public void test$platform_invoke_async_service$success() throws Exception {
         final TpEmptyReturn tpReturn = TpReturnHelper.getTpEmptyReturn(() ->
                 tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
-                        .getThingCom(EchoThingCom.THING_COM_ID, EchoThingCom.class)
+                        .getThingComponent(EchoThingCom.class)
                         .echoByAsync(new EchoThingCom.Echo("HELLO!")));
         final ThingReplyServiceReturnMessage message = waitingForReplyMessageByReqId(tpReturn.getReqId());
         final EchoThingCom.Echo echo = message.getData();
@@ -120,6 +121,7 @@ public class PuppetTestCase extends PuppetSupport {
     }
 
     @Test
+    @Ignore
     public void test$thing_upgrade_module$success() throws ThingException, InterruptedException, TimeoutException {
         final ResourceThingCom resourceThingCom = tPuppet.getThingComponent(ResourceThingCom.class, true);
         tPuppet.getThingOp().reportModule(resourceThingCom, (id, reply) -> {
@@ -170,12 +172,13 @@ public class PuppetTestCase extends PuppetSupport {
     @Test
     public void test$platform_get_property$success() {
         final CpuInfo cpuInfo = tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
-                .getThingCom(DmgrThingCom.THING_COM_ID, DmgrThingCom.class)
+                .getThingComponent(DmgrThingCom.class)
                 .getCpuInfo();
         Assert.assertNotNull(cpuInfo);
     }
 
     @Test
+    @Ignore
     public void test$platform_batch_get_properties$success() throws ThingPlatformException {
 
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");

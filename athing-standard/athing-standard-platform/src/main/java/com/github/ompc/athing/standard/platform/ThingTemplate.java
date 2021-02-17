@@ -17,21 +17,11 @@ public interface ThingTemplate {
     /**
      * 获取设备组件
      *
-     * @param thingComId 组件ID
-     * @param <T>        组件类型
-     * @return 设备组件
-     */
-    <T extends ThingCom> T getThingCom(String thingComId);
-
-    /**
-     * 获取设备组件
-     *
-     * @param thingComId         组件ID
      * @param expectThingComType 期待组件类型
      * @param <T>                组件类型
      * @return 设备组件
      */
-    <T extends ThingCom> T getThingCom(String thingComId, Class<T> expectThingComType);
+    <T extends ThingCom> T getThingComponent(Class<T> expectThingComType);
 
     /**
      * 批量设置设备属性

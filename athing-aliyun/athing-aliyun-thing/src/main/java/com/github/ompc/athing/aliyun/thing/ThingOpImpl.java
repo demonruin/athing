@@ -33,7 +33,7 @@ class ThingOpImpl implements ThingOp {
                 new ThingModularUpgradePushMqttExecutor(thing, poster),
                 new ThingConfigPushMqttExecutor(thing, poster),
                 new ThPropertySetMqttExecutor(thing, poster),
-                new ThServiceInvokeMqttExecutor(thing, poster)
+                new ThServiceInvokeMqttExecutor(thing, poster),
         };
     }
 

@@ -59,7 +59,7 @@ public class ThingConnector {
 
             @Override
             public Connecting load(File comJarFile) {
-                return load(comJarFile, (productId, thingId, boot) -> null);
+                return load(comJarFile, (productId, thingId, boot) -> boot.bootUp(productId, thingId, null));
             }
 
             @Override

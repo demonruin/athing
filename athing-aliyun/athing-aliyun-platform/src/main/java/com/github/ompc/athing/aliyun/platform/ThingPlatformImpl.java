@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 设备平台实现
@@ -125,17 +126,50 @@ class ThingPlatformImpl implements ThingPlatform {
         }
 
         return new ThingTemplate() {
+
+            /**
+             * 根据组件类型找到对应组件，找到的组件必须存在且唯一
+             *
+             * @param type 组件类型
+             * @return 设备组件
+             */
+            private ThComMeta getThComMetaByType(Class<? extends ThingCom> type) {
+                final Set<ThComMeta> founds = thProductStub.getThProductMeta().getThComMetaMap().values().stream()
+                        .filter(meta -> type.isAssignableFrom(meta.getThingComType()))
+                        .collect(Collectors.toSet());
+
+                // 匹配到不止一个组件则报错
+                if (founds.size() > 1) {
+                    throw new IllegalArgumentException(
+                            String.format("component-type: %s not unique is product: %s, expect: 1, actual: %d",
+                                    type.getName(),
+                                    productId,
+                                    founds.size()
+                            ));
+                }
+
+                // 没有找到匹配的组件
+                if (founds.isEmpty()) {
+                    throw new IllegalArgumentException(
+                            String.format("component-type: %s not found in product: %s",
+                                    type.getName(),
+                                    productId
+                            ));
+                }
+
+                // 找到则返回
+                return founds.iterator().next();
+
+            }
+
             @Override
-            public <T extends ThingCom> T getThingCom(String thingComId) {
-                final ClassLoader loader = getClass().getClassLoader();
+            public <T extends ThingCom> T getThingComponent(Class<T> type) {
+
 
                 // 检查产品元数据中是否包含了定义的组件
-                final ThComMeta thComMeta = thProductStub.getThProductMeta().getThComMetaMap().get(thingComId);
-                if (null == thComMeta) {
-                    throw new IllegalArgumentException(
-                            String.format("component: %s not define in product: %s", thingComId, productId)
-                    );
-                }
+                final ThComMeta thComMeta = getThComMetaByType(type);
+
+                final ClassLoader loader = getClass().getClassLoader();
 
                 final @SuppressWarnings("unchecked")
                 T object = (T) Proxy.newProxyInstance(loader, new Class<?>[]{thComMeta.getThingComType()}, (proxy, method, args) -> {
@@ -157,11 +191,6 @@ class ThingPlatformImpl implements ThingPlatform {
                 });
 
                 return object;
-            }
-
-            @Override
-            public <T extends ThingCom> T getThingCom(String thingComId, Class<T> expectThingComType) {
-                return getThingCom(thingComId);
             }
 
             @Override
